@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import type { Block as BlockType } from '../lib/blockTypes';
 import { detectBlockType } from '../lib/blockParser';
+import { SlashMenu } from './SlashMenu';
 
 interface BlockProps {
   block: BlockType;
@@ -25,6 +26,8 @@ export function Block({
 }: BlockProps) {
   const contentEditableRef = useRef<HTMLDivElement>(null);
   const [localContent, setLocalContent] = useState(block.content);
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     setLocalContent(block.content);
@@ -41,10 +44,22 @@ export function Block({
     setLocalContent(newContent);
     onChange(newContent);
 
-    // Auto-detect block type changes
-    const detectedType = detectBlockType(newContent);
-    if (detectedType !== block.type) {
-      onTypeChange(detectedType);
+    // Show slash menu if content is '/'
+    if (newContent === '/') {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setSlashMenuPosition({
+        top: rect.bottom,
+        left: rect.left
+      });
+      setShowSlashMenu(true);
+    } else {
+      setShowSlashMenu(false);
+
+      // Auto-detect block type changes
+      const detectedType = detectBlockType(newContent);
+      if (detectedType !== block.type) {
+        onTypeChange(detectedType);
+      }
     }
   };
 
@@ -56,6 +71,13 @@ export function Block({
       e.preventDefault();
       onBackspace();
     }
+  };
+
+  const handleSelectBlockType = (newType: BlockType['type']) => {
+    setShowSlashMenu(false);
+    setLocalContent('');
+    onChange('');
+    onTypeChange(newType);
   };
 
   const renderEditMode = () => {
@@ -172,8 +194,16 @@ export function Block({
   };
 
   return (
-    <div style={{ marginBottom: '0.5rem' }}>
-      {isActive ? renderEditMode() : renderViewMode()}
-    </div>
+    <>
+      <div style={{ marginBottom: '0.5rem' }}>
+        {isActive ? renderEditMode() : renderViewMode()}
+      </div>
+      <SlashMenu
+        isOpen={showSlashMenu}
+        position={slashMenuPosition}
+        onSelectType={handleSelectBlockType}
+        onClose={() => setShowSlashMenu(false)}
+      />
+    </>
   );
 }

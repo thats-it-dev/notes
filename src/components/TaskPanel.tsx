@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/appStore';
 import type { Task } from '../lib/types';
+import { toggleTask } from '../lib/taskOperations';
 
 export function TaskPanel() {
   const { taskPanelOpen, setTaskPanelOpen, selectedTags, taskFilter } = useAppStore();
@@ -28,12 +29,7 @@ export function TaskPanel() {
   }, [taskFilter, selectedTags]);
 
   const handleToggleTask = async (task: Task) => {
-    await db.tasks.update(task.id, {
-      completed: !task.completed,
-      updatedAt: new Date()
-    });
-
-    // TODO: Update note content to reflect checkbox change
+    await toggleTask(task.id);
   };
 
   if (!taskPanelOpen) return null;

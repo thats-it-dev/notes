@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
+import { NoteEditor } from './components/NoteEditor';
 import '@thatsit/ui/index.css';
 
 function App() {
@@ -13,7 +14,6 @@ function App() {
       if (recentNote) {
         setCurrentNote(recentNote.id);
       } else {
-        // Create welcome note
         const welcomeNote = await createNote(
           '# Welcome to Notes\n\nStart typing to create your first note.\n\n## Features\n\n- Markdown support\n- [ ] Create tasks with checkboxes\n- Add #tags anywhere\n- Use Cmd+K to search'
         );
@@ -25,13 +25,12 @@ function App() {
   }, [setCurrentNote]);
 
   if (!currentNoteId) {
-    return <div>Loading...</div>;
+    return <div style={{ padding: '2rem' }}>Loading...</div>;
   }
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Notes App</h1>
-      <p>Current note: {currentNoteId}</p>
+      <NoteEditor noteId={currentNoteId} />
     </div>
   );
 }

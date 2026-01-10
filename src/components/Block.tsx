@@ -25,20 +25,34 @@ export function Block({
   onTypeChange,
 }: BlockProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [localContent, setLocalContent] = useState(block.content);
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
 
+  // Sync from parent when not active
+  useEffect(() => {
+    if (!isActive) {
+      setLocalContent(block.content);
+    }
+  }, [block.content, isActive]);
+
   useEffect(() => {
     if (isActive && textareaRef.current) {
+      setLocalContent(block.content);
       textareaRef.current.focus();
-      // Move cursor to end
-      textareaRef.current.selectionStart = textareaRef.current.value.length;
-      textareaRef.current.selectionEnd = textareaRef.current.value.length;
+      // Move cursor to end on next tick after content is set
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.value.length;
+          textareaRef.current.selectionEnd = textareaRef.current.value.length;
+        }
+      }, 0);
     }
-  }, [isActive]);
+  }, [isActive, block.content]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
+    setLocalContent(newContent);
     onChange(newContent);
 
     // Show slash menu if content is '/'
@@ -72,6 +86,7 @@ export function Block({
 
   const handleSelectBlockType = (newType: BlockType['type']) => {
     setShowSlashMenu(false);
+    setLocalContent('');
     onChange('');
     onTypeChange(newType);
   };
@@ -80,7 +95,7 @@ export function Block({
     return (
       <textarea
         ref={textareaRef}
-        value={block.content}
+        value={localContent}
         onChange={handleChange}
         onFocus={onFocus}
         onBlur={onBlur}
@@ -103,7 +118,7 @@ export function Block({
   };
 
   const renderViewMode = () => {
-    const content = block.content;
+    const content = localContent;
 
     switch (block.type) {
       case 'heading1':

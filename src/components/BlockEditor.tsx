@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Block as BlockType } from '../lib/blockTypes';
 import { parseMarkdownToBlocks, blocksToMarkdown } from '../lib/blockParser';
 import { Block } from './Block';
@@ -11,15 +11,19 @@ interface BlockEditorProps {
 export function BlockEditor({ content, onChange }: BlockEditorProps) {
   const [blocks, setBlocks] = useState<BlockType[]>([]);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const hasInitialized = useRef(false);
+  const blockIdCounter = useRef(0);
 
   // Parse markdown to blocks on mount and when content changes externally
   useEffect(() => {
     const parsedBlocks = parseMarkdownToBlocks(content);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setBlocks(parsedBlocks);
 
-    // Set first block as active if none is active
-    if (!activeBlockId && parsedBlocks.length > 0) {
+    // Set first block as active only on initial mount
+    if (!hasInitialized.current && parsedBlocks.length > 0) {
       setActiveBlockId(parsedBlocks[0].id);
+      hasInitialized.current = true;
     }
   }, [content]);
 
@@ -47,8 +51,9 @@ export function BlockEditor({ content, onChange }: BlockEditorProps) {
 
   const handleEnter = (blockId: string) => {
     const blockIndex = blocks.findIndex((b) => b.id === blockId);
+    blockIdCounter.current += 1;
     const newBlock: BlockType = {
-      id: `block-${Date.now()}`,
+      id: `block-${blockIdCounter.current}`,
       type: 'paragraph',
       content: '',
     };

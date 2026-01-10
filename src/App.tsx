@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
 import { NoteEditor } from './components/NoteEditor';
+import { TaskPanel } from './components/TaskPanel';
 import '@thatsit/ui/index.css';
 
 function App() {
-  const { currentNoteId, setCurrentNote } = useAppStore();
+  const { currentNoteId, setCurrentNote, toggleTaskPanel } = useAppStore();
 
   useEffect(() => {
     async function initializeApp() {
@@ -29,9 +30,18 @@ function App() {
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <NoteEditor noteId={currentNoteId} />
-    </div>
+    <>
+      <div style={{ padding: '2rem' }}>
+        <button
+          onClick={toggleTaskPanel}
+          style={{ marginBottom: '1rem' }}
+        >
+          Toggle Tasks
+        </button>
+        <NoteEditor noteId={currentNoteId} />
+      </div>
+      <TaskPanel />
+    </>
   );
 }
 

@@ -8,7 +8,6 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#fafafa'
     }}>
       <main style={{
         maxWidth: '1200px',

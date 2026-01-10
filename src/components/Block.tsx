@@ -29,6 +29,18 @@ export function Block({
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
   const wasActiveRef = useRef(isActive);
+  const isUpdatingFromInputRef = useRef(false);
+
+  // Manually update contentEditable only when needed
+  useEffect(() => {
+    if (contentEditableRef.current && !isUpdatingFromInputRef.current) {
+      const currentText = contentEditableRef.current.textContent || '';
+      if (currentText !== localContent) {
+        contentEditableRef.current.textContent = localContent;
+      }
+    }
+    isUpdatingFromInputRef.current = false;
+  }, [localContent]);
 
   // Only sync content from props when not actively editing
   useEffect(() => {
@@ -51,6 +63,7 @@ export function Block({
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = e.currentTarget.textContent || '';
+    isUpdatingFromInputRef.current = true;
     setLocalContent(newContent);
     onChange(newContent);
 
@@ -106,9 +119,7 @@ export function Block({
           whiteSpace: 'pre-wrap',
           fontFamily: 'monospace',
         }}
-      >
-        {localContent}
-      </div>
+      />
     );
   };
 

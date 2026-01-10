@@ -31,6 +31,14 @@ export function Block({
   const wasActiveRef = useRef(isActive);
   const isUpdatingFromInputRef = useRef(false);
 
+  // Set initial content when ref is attached
+  const setContentEditableRef = (element: HTMLDivElement | null) => {
+    if (element && element.textContent === '') {
+      element.textContent = localContent;
+    }
+    contentEditableRef.current = element;
+  };
+
   // Manually update contentEditable only when needed
   useEffect(() => {
     if (contentEditableRef.current && !isUpdatingFromInputRef.current) {
@@ -55,7 +63,18 @@ export function Block({
     if (becameActive && contentEditableRef.current) {
       // Sync content when becoming active
       setLocalContent(block.content);
+      contentEditableRef.current.textContent = block.content;
       contentEditableRef.current.focus();
+
+      // Move cursor to end
+      const range = document.createRange();
+      const selection = window.getSelection();
+      if (contentEditableRef.current.childNodes.length > 0) {
+        range.setStart(contentEditableRef.current.childNodes[0], block.content.length);
+        range.collapse(true);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
     }
 
     wasActiveRef.current = isActive;
@@ -106,7 +125,7 @@ export function Block({
   const renderEditMode = () => {
     return (
       <div
-        ref={contentEditableRef}
+        ref={setContentEditableRef}
         contentEditable
         onInput={handleInput}
         onFocus={onFocus}

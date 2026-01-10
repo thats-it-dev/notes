@@ -14,6 +14,9 @@ importers:
       '@milkdown/ctx':
         specifier: ^7.18.0
         version: 7.18.0
+      '@milkdown/plugin-block':
+        specifier: ^7.18.0
+        version: 7.18.0
       '@milkdown/plugin-history':
         specifier: ^7.18.0
         version: 7.18.0
@@ -21,6 +24,9 @@ importers:
         specifier: ^7.18.0
         version: 7.18.0
       '@milkdown/preset-commonmark':
+        specifier: ^7.18.0
+        version: 7.18.0
+      '@milkdown/preset-gfm':
         specifier: ^7.18.0
         version: 7.18.0
       '@milkdown/prose':

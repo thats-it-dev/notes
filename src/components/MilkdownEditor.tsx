@@ -1,5 +1,5 @@
 import { defaultValueCtx, Editor, rootCtx } from '@milkdown/core';
-import { commonmark } from '@milkdown/preset-commonmark';
+import { gfm } from '@milkdown/preset-gfm';
 import { nord } from '@milkdown/theme-nord';
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
@@ -14,7 +14,7 @@ interface MilkdownEditorProps {
 function MilkdownEditorInner({ content, onChange }: MilkdownEditorProps) {
   useEditor((root) =>
     Editor.make()
-      .use(commonmark)
+      .use(gfm)
       .use(listener)
       .use(history)
       .config((ctx) => {

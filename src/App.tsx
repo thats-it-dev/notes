@@ -4,10 +4,11 @@ import { getMostRecentNote, createNote } from './lib/noteOperations';
 import { NoteEditor } from './components/NoteEditor';
 import { TaskPanel } from './components/TaskPanel';
 import { CommandPalette } from './components/CommandPalette';
+import { Layout } from './components/Layout';
 import '@thatsit/ui/index.css';
 
 function App() {
-  const { currentNoteId, setCurrentNote, toggleTaskPanel } = useAppStore();
+  const { currentNoteId, setCurrentNote } = useAppStore();
 
   useEffect(() => {
     async function initializeApp() {
@@ -27,20 +28,18 @@ function App() {
   }, [setCurrentNote]);
 
   if (!currentNoteId) {
-    return <div style={{ padding: '2rem' }}>Loading...</div>;
+    return (
+      <Layout>
+        <div>Loading...</div>
+      </Layout>
+    );
   }
 
   return (
     <>
-      <div style={{ padding: '2rem' }}>
-        <button
-          onClick={toggleTaskPanel}
-          style={{ marginBottom: '1rem' }}
-        >
-          Toggle Tasks
-        </button>
+      <Layout>
         <NoteEditor noteId={currentNoteId} />
-      </div>
+      </Layout>
       <TaskPanel />
       <CommandPalette />
     </>

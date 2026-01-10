@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { updateNoteContent } from '../lib/noteOperations';
 import { useState } from 'react';
-import { MilkdownEditor } from './MilkdownEditor';
+import { BlockEditor } from './BlockEditor';
 
 interface NoteEditorProps {
   noteId: string;
@@ -32,7 +32,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <h2 style={{ marginBottom: '1rem' }}>{note.title}</h2>
-      <MilkdownEditor
+      <BlockEditor
         content={note.content}
         onChange={handleChange}
       />

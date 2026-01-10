@@ -28,16 +28,26 @@ export function Block({
   const [localContent, setLocalContent] = useState(block.content);
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
+  const wasActiveRef = useRef(isActive);
+
+  // Only sync content from props when not actively editing
+  useEffect(() => {
+    if (!isActive) {
+      setLocalContent(block.content);
+    }
+  }, [block.content, isActive]);
 
   useEffect(() => {
-    setLocalContent(block.content);
-  }, [block.content]);
+    const becameActive = isActive && !wasActiveRef.current;
 
-  useEffect(() => {
-    if (isActive && contentEditableRef.current) {
+    if (becameActive && contentEditableRef.current) {
+      // Sync content when becoming active
+      setLocalContent(block.content);
       contentEditableRef.current.focus();
     }
-  }, [isActive]);
+
+    wasActiveRef.current = isActive;
+  }, [isActive, block.content]);
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = e.currentTarget.textContent || '';

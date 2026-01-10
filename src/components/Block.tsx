@@ -24,71 +24,26 @@ export function Block({
   onBackspace,
   onTypeChange,
 }: BlockProps) {
-  const contentEditableRef = useRef<HTMLDivElement>(null);
-  const [localContent, setLocalContent] = useState(block.content);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
-  const wasActiveRef = useRef(isActive);
-  const isUpdatingFromInputRef = useRef(false);
-
-  // Set initial content when ref is attached
-  const setContentEditableRef = (element: HTMLDivElement | null) => {
-    if (element && element.textContent === '') {
-      element.textContent = localContent;
-    }
-    contentEditableRef.current = element;
-  };
-
-  // Manually update contentEditable only when needed
-  useEffect(() => {
-    if (contentEditableRef.current && !isUpdatingFromInputRef.current) {
-      const currentText = contentEditableRef.current.textContent || '';
-      if (currentText !== localContent) {
-        contentEditableRef.current.textContent = localContent;
-      }
-    }
-    isUpdatingFromInputRef.current = false;
-  }, [localContent]);
-
-  // Only sync content from props when not actively editing
-  useEffect(() => {
-    if (!isActive) {
-      setLocalContent(block.content);
-    }
-  }, [block.content, isActive]);
 
   useEffect(() => {
-    const becameActive = isActive && !wasActiveRef.current;
-
-    if (becameActive && contentEditableRef.current) {
-      // Sync content when becoming active
-      setLocalContent(block.content);
-      contentEditableRef.current.textContent = block.content;
-      contentEditableRef.current.focus();
-
+    if (isActive && textareaRef.current) {
+      textareaRef.current.focus();
       // Move cursor to end
-      const range = document.createRange();
-      const selection = window.getSelection();
-      if (contentEditableRef.current.childNodes.length > 0) {
-        range.setStart(contentEditableRef.current.childNodes[0], block.content.length);
-        range.collapse(true);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
+      textareaRef.current.selectionStart = textareaRef.current.value.length;
+      textareaRef.current.selectionEnd = textareaRef.current.value.length;
     }
+  }, [isActive]);
 
-    wasActiveRef.current = isActive;
-  }, [isActive, block.content]);
-
-  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const newContent = e.currentTarget.textContent || '';
-    isUpdatingFromInputRef.current = true;
-    setLocalContent(newContent);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
     onChange(newContent);
 
     // Show slash menu if content is '/'
     if (newContent === '/') {
-      const rect = e.currentTarget.getBoundingClientRect();
+      const rect = e.target.getBoundingClientRect();
       setSlashMenuPosition({
         top: rect.bottom,
         left: rect.left
@@ -105,11 +60,11 @@ export function Block({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       onEnter();
-    } else if (e.key === 'Backspace' && localContent === '') {
+    } else if (e.key === 'Backspace' && e.currentTarget.value === '') {
       e.preventDefault();
       onBackspace();
     }
@@ -117,33 +72,38 @@ export function Block({
 
   const handleSelectBlockType = (newType: BlockType['type']) => {
     setShowSlashMenu(false);
-    setLocalContent('');
     onChange('');
     onTypeChange(newType);
   };
 
   const renderEditMode = () => {
     return (
-      <div
-        ref={setContentEditableRef}
-        contentEditable
-        onInput={handleInput}
+      <textarea
+        ref={textareaRef}
+        value={block.content}
+        onChange={handleChange}
         onFocus={onFocus}
         onBlur={onBlur}
         onKeyDown={handleKeyDown}
-        suppressContentEditableWarning
         style={{
+          width: '100%',
+          border: 'none',
           outline: 'none',
+          resize: 'none',
           minHeight: '1.5em',
-          whiteSpace: 'pre-wrap',
           fontFamily: 'monospace',
+          fontSize: 'inherit',
+          lineHeight: 'inherit',
+          padding: 0,
+          background: 'transparent',
         }}
+        rows={1}
       />
     );
   };
 
   const renderViewMode = () => {
-    const content = localContent;
+    const content = block.content;
 
     switch (block.type) {
       case 'heading1':

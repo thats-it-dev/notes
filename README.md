@@ -10,6 +10,16 @@ this is a very simple, local first note taking app. Open it and start typing.
 - **task tracking**: create a task anywhere and view it in a global task list.
 - **search**: search through all your notes by tags and keywords.
 
+## Block-Based Editor
+
+The notes app uses a custom block-based editor (similar to Notion):
+
+- **Click a block** to edit with markdown syntax visible
+- **Click away** to see formatted view
+- **Press Enter** to create new block
+- **Type `/`** to open slash command menu
+- **Auto-formatting**: Type `# ` for heading, `[ ] ` for task, etc.
+
 ## Notes is better with Sync!
 
 [Sync, that's it]() is a service that provides:

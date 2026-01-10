@@ -1,5 +1,6 @@
 import { defaultValueCtx, Editor, rootCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
+import { nord } from '@milkdown/theme-nord';
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { history } from '@milkdown/plugin-history';
@@ -17,6 +18,7 @@ function MilkdownEditorInner({ content, onChange }: MilkdownEditorProps) {
       .use(listener)
       .use(history)
       .config((ctx) => {
+        nord(ctx);
         ctx.set(rootCtx, root);
         ctx.set(defaultValueCtx, content);
         ctx.get(listenerCtx).markdownUpdated((_ctx, markdown) => {

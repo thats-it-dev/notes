@@ -1,32 +1,39 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import { Button } from '@thatsit/ui'
-import '@thatsit/ui/index.css'
+import { useEffect } from 'react';
+import { useAppStore } from './store/appStore';
+import { getMostRecentNote, createNote } from './lib/noteOperations';
+import '@thatsit/ui/index.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { currentNoteId, setCurrentNote } = useAppStore();
+
+  useEffect(() => {
+    async function initializeApp() {
+      const recentNote = await getMostRecentNote();
+
+      if (recentNote) {
+        setCurrentNote(recentNote.id);
+      } else {
+        // Create welcome note
+        const welcomeNote = await createNote(
+          '# Welcome to Notes\n\nStart typing to create your first note.\n\n## Features\n\n- Markdown support\n- [ ] Create tasks with checkboxes\n- Add #tags anywhere\n- Use Cmd+K to search'
+        );
+        setCurrentNote(welcomeNote.id);
+      }
+    }
+
+    initializeApp();
+  }, [setCurrentNote]);
+
+  if (!currentNoteId) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <Button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </Button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div style={{ padding: '2rem' }}>
+      <h1>Notes App</h1>
+      <p>Current note: {currentNoteId}</p>
+    </div>
+  );
 }
 
-export default App
+export default App;

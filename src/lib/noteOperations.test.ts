@@ -33,7 +33,7 @@ describe('Note Operations', () => {
   });
 
   it('should get most recent note', async () => {
-    const note1 = await createNote('First');
+    await createNote('First');
     await new Promise(resolve => setTimeout(resolve, 10));
     const note2 = await createNote('Second');
 

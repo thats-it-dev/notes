@@ -151,7 +151,7 @@ export function Block({
           </h3>
         );
 
-      case 'task':
+      case 'task': {
         const isCompleted = content.match(/^- \[x\]/i);
         const taskText = content.replace(/^- \[(x| )\] /i, '');
         return (
@@ -167,6 +167,7 @@ export function Block({
             </span>
           </div>
         );
+      }
 
       case 'bulletList':
         return (

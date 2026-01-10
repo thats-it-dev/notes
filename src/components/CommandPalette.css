@@ -1,0 +1,28 @@
+[cmdk-root] {
+  background: white;
+}
+
+[cmdk-item] {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+[cmdk-item]:hover,
+[cmdk-item][aria-selected="true"] {
+  background: #f0f0f0;
+}
+
+[cmdk-group-heading] {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  padding: 0.5rem 0.75rem 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+[cmdk-separator] {
+  height: 1px;
+  background: #eee;
+  margin: 0.5rem 0;
+}

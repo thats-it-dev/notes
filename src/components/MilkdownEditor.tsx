@@ -3,6 +3,7 @@ import { commonmark } from '@milkdown/preset-commonmark';
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { history } from '@milkdown/plugin-history';
+import '@milkdown/theme-nord/style.css';
 
 interface MilkdownEditorProps {
   content: string;

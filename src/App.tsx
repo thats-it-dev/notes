@@ -3,6 +3,7 @@ import { useAppStore } from './store/appStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
 import { NoteEditor } from './components/NoteEditor';
 import { TaskPanel } from './components/TaskPanel';
+import { CommandPalette } from './components/CommandPalette';
 import '@thatsit/ui/index.css';
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
         <NoteEditor noteId={currentNoteId} />
       </div>
       <TaskPanel />
+      <CommandPalette />
     </>
   );
 }

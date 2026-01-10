@@ -1,5 +1,5 @@
-import Dexie, { Table } from 'dexie';
-import { Note, Task, Tag } from './types';
+import Dexie, { type Table } from 'dexie';
+import type { Note, Task, Tag } from './types';
 
 export class NotesDatabase extends Dexie {
   notes!: Table<Note, string>;

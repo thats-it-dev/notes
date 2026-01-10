@@ -1,4 +1,4 @@
-import { ParsedContent } from './types';
+import type { ParsedContent } from './types';
 
 const HASHTAG_REGEX = /#[\w-]+/g;
 const TASK_REGEX = /^[\s-]*\[( |x|X)\]\s+(.+)$/;

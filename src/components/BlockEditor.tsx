@@ -36,6 +36,17 @@ export function BlockEditor({
     }
   }, []);
 
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      // Reset height to get accurate scrollHeight
+      textarea.style.height = 'auto';
+      // Set height to match content
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [content]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
@@ -87,8 +98,7 @@ export function BlockEditor({
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="w-full border-none outline-none resize-none min-h-[1.5em] font-mono bg-transparent p-0"
-        rows={1}
+        className="w-full border-none outline-none resize-none min-h-[1.5em] font-mono bg-transparent p-0 overflow-hidden"
       />
       <SlashMenu
         isOpen={showSlashMenu}

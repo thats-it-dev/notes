@@ -28,15 +28,11 @@ export function BlockEditor({
   // Focus and position cursor on mount
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.focus();
-      // Move cursor to end
-      setTimeout(() => {
-        if (textareaRef.current) {
-          const length = textareaRef.current.value.length;
-          textareaRef.current.selectionStart = length;
-          textareaRef.current.selectionEnd = length;
-        }
-      }, 0);
+      const textarea = textareaRef.current;
+      textarea.focus();
+      // Move cursor to end immediately
+      const length = textarea.value.length;
+      textarea.setSelectionRange(length, length);
     }
   }, []);
 

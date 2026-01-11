@@ -32,7 +32,7 @@ export function CommandPalette() {
   }, [commandPaletteOpen, setCommandPaletteOpen]);
 
   const handleNewNote = async () => {
-    const note = await createNote('# Untitled\n\n');
+    const note = await createNote([]);
     setCurrentNote(note.id);
     setCommandPaletteOpen(false);
   };

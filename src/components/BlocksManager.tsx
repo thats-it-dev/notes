@@ -49,6 +49,22 @@ export function BlocksManager({ content, onChange }: BlocksManagerProps) {
     syncToMarkdown(updatedBlocks);
   };
 
+  const handleToggleTask = (blockId: string) => {
+    const updatedBlocks = blocks.map((b) => {
+      if (b.id === blockId && b.type === 'task') {
+        const isCompleted = /^- \[x\]/i.test(b.content);
+        const taskText = b.content.replace(/^- \[(x| )\] /i, '');
+        const newContent = isCompleted
+          ? `- [ ] ${taskText}`
+          : `- [x] ${taskText}`;
+        return { ...b, content: newContent };
+      }
+      return b;
+    });
+    setBlocks(updatedBlocks);
+    syncToMarkdown(updatedBlocks);
+  };
+
   const handleEnter = (blockId: string) => {
     const blockIndex = blocks.findIndex((b) => b.id === blockId);
     blockIdCounter.current += 1;
@@ -86,24 +102,18 @@ export function BlocksManager({ content, onChange }: BlocksManagerProps) {
   };
 
   return (
-    <div
-      style={{
-        padding: '1rem',
-        minHeight: '400px',
-        fontFamily: 'system-ui, sans-serif',
-      }}
-    >
+    <div className="p-4 min-h-[400px] font-sans">
       {blocks.map((block) => (
         <Block
           key={block.id}
           block={block}
           isActive={activeBlockId === block.id}
-          onFocus={() => setActiveBlockId(block.id)}
-          onBlur={() => {}}
-          onChange={(content) => handleBlockChange(block.id, content)}
+          onActivate={() => setActiveBlockId(block.id)}
+          onBlur={(content) => handleBlockChange(block.id, content)}
           onEnter={() => handleEnter(block.id)}
           onBackspace={() => handleBackspace(block.id)}
           onTypeChange={(newType) => handleBlockTypeChange(block.id, newType)}
+          onToggleTask={() => handleToggleTask(block.id)}
         />
       ))}
     </div>

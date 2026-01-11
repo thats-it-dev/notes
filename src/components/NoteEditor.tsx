@@ -18,7 +18,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 
   const editor = useCreateBlockNote({
     schema,
-    initialContent: note?.content,
+    initialContent: note?.content || [],
   });
 
   const debouncedUpdate = useMemo(() => {
@@ -31,6 +31,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     };
   }, [noteId]);
 
+  // Don't render editor until note is loaded
   if (!note) {
     return <div>Loading note...</div>;
   }

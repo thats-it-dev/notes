@@ -11,7 +11,7 @@ export function HeadingBlock({ content, type, onClick }: HeadingBlockProps) {
 
   if (type === 'heading1') {
     return (
-      <h1 className={`${baseClasses} text-2xl`} onClick={onClick}>
+      <h1 className={`${baseClasses}`} onClick={onClick}>
         {cleanContent}
       </h1>
     );
@@ -19,14 +19,14 @@ export function HeadingBlock({ content, type, onClick }: HeadingBlockProps) {
 
   if (type === 'heading2') {
     return (
-      <h2 className={`${baseClasses} text-xl`} onClick={onClick}>
+      <h2 className={`${baseClasses}`} onClick={onClick}>
         {cleanContent}
       </h2>
     );
   }
 
   return (
-    <h3 className={`${baseClasses} text-lg`} onClick={onClick}>
+    <h3 className={`${baseClasses}`} onClick={onClick}>
       {cleanContent}
     </h3>
   );

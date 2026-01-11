@@ -61,44 +61,26 @@ export function CommandPalette() {
     >
       <Command
         label="Command Menu"
-        style={{
-          background: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-          width: '640px',
-          maxHeight: '400px',
-          overflow: 'hidden'
-        }}
         onClick={(e) => e.stopPropagation()}
       >
         <Command.Input
           placeholder="Search notes or run command..."
-          style={{
-            width: '100%',
-            padding: '1rem',
-            border: 'none',
-            borderBottom: '1px solid #eee',
-            fontSize: '1rem',
-            outline: 'none'
-          }}
         />
-        <Command.List style={{ padding: '0.5rem', maxHeight: '300px', overflow: 'auto' }}>
-          <Command.Empty style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>
+        <Command.List>
+          <Command.Empty>
             No results found
           </Command.Empty>
 
           <Command.Group heading="Commands">
             <Command.Item
               onSelect={handleNewNote}
-              style={{ padding: '0.75rem', cursor: 'pointer', borderRadius: '4px' }}
             >
-              📝 New Note
+            Create Note
             </Command.Item>
             <Command.Item
               onSelect={toggleTaskPanel}
-              style={{ padding: '0.75rem', cursor: 'pointer', borderRadius: '4px' }}
             >
-              ✓ Toggle Tasks
+            Settings
             </Command.Item>
           </Command.Group>
 
@@ -108,7 +90,6 @@ export function CommandPalette() {
                 key={note.id}
                 value={note.title}
                 onSelect={() => handleSelectNote(note.id)}
-                style={{ padding: '0.75rem', cursor: 'pointer', borderRadius: '4px' }}
               >
                 {note.title}
               </Command.Item>

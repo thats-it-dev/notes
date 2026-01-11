@@ -90,7 +90,7 @@ export function BlocksManager({ noteId, content, onChange }: BlocksManagerProps)
   };
 
   return (
-    <div className="p-4 min-h-[400px] font-sans">
+    <div className="p-4 h-svh overflow-y-auto">
       {blocks.map((block) => (
         <Block
           key={block.id}

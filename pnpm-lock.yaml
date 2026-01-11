@@ -12,8 +12,8 @@ importers:
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))
       '@thatsit/ui':
-        specifier: ^0.0.3
-        version: 0.0.3(@types/react@19.2.7)(tailwindcss@4.1.18)
+        specifier: ^0.0.4
+        version: 0.0.4(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(tailwindcss@4.1.18)
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -1301,8 +1301,8 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
-  '@thatsit/ui@0.0.3':
-    resolution: {integrity: sha512-er1tP/p9ipAyyRA38t/bnQWShp6htxjmZrdTTix58dJJrU/EBpdt91Tzw7uLdkhTyyomArFfpqw810VTT93UZw==}
+  '@thatsit/ui@0.0.4':
+    resolution: {integrity: sha512-o9UDhXTWGv1LKc5oCEXQv+jgQFitaIdrfb2Ojtu6XtMBfd3mqeMbJi8tZHN0LC7s8V/Us6RpwVNRjjyxc8NJpA==}
     peerDependencies:
       tailwindcss: ^4.1.18
 
@@ -4251,8 +4251,9 @@ snapshots:
       tailwindcss: 4.1.18
       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)
 
-  '@thatsit/ui@0.0.3(@types/react@19.2.7)(tailwindcss@4.1.18)':
+  '@thatsit/ui@0.0.4(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(tailwindcss@4.1.18)':
     dependencies:
+      '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-slot': 1.2.4(@types/react@19.2.7)(react@19.2.3)
       clsx: 2.1.1
       react: 19.2.3
@@ -4260,6 +4261,7 @@ snapshots:
       tailwindcss: 4.1.18
     transitivePeerDependencies:
       - '@types/react'
+      - '@types/react-dom'
 
   '@types/babel__core@7.20.5':
     dependencies:

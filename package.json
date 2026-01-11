@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
-    "@thatsit/ui": "^0.0.3",
+    "@thatsit/ui": "^0.0.4",
     "cmdk": "^1.1.1",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",

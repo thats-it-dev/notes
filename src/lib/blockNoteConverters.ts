@@ -30,7 +30,7 @@ export function extractTasks(blocks: Block[]): ExtractedTask[] {
   function traverse(block: Block) {
     // BlockNote uses different block types - check for checkListItem
     if (block.type === 'checkListItem') {
-      const title = getPlainText(block.content);
+      const title = getPlainText(block.content as any);
       tasks.push({
         blockId: block.id,
         title,
@@ -47,4 +47,36 @@ export function extractTasks(blocks: Block[]): ExtractedTask[] {
 
   blocks.forEach(traverse);
   return tasks;
+}
+
+export function blocksToMarkdown(blocks: Block[]): string {
+  return blocks.map(blockToMarkdown).filter(Boolean).join('\n\n');
+}
+
+function blockToMarkdown(block: Block): string {
+  const content = getPlainText(block.content as any);
+
+  switch (block.type) {
+    case 'heading': {
+      const level = (block.props?.level as number) || 1;
+      return `${'#'.repeat(level)} ${content}`;
+    }
+
+    case 'checkListItem': {
+      const checked = block.props?.checked ? 'x' : ' ';
+      return `- [${checked}] ${content}`;
+    }
+
+    case 'bulletListItem':
+      return `- ${content}`;
+
+    case 'numberedListItem':
+      return `1. ${content}`;
+
+    case 'paragraph':
+      return content;
+
+    default:
+      return content;
+  }
 }

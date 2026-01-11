@@ -1,8 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { updateNoteContent } from '../lib/noteOperations';
-import { useState } from 'react';
-import { BlocksManager } from './BlocksManager';
+import { useMemo } from 'react';
+import { useCreateBlockNote } from '@blocknote/react';
+import { BlockNoteView } from '@blocknote/mantine';
+import '@blocknote/core/fonts/inter.css';
+import '@blocknote/mantine/style.css';
+import type { Block } from '@blocknote/core';
+import { schema } from '../lib/blockNoteSchema';
 
 interface NoteEditorProps {
   noteId: string;
@@ -10,30 +15,33 @@ interface NoteEditorProps {
 
 export function NoteEditor({ noteId }: NoteEditorProps) {
   const note = useLiveQuery(() => db.notes.get(noteId), [noteId]);
-  const [saveTimeout, setSaveTimeout] = useState<number | null>(null);
 
-  const handleChange = (newContent: string) => {
-    // Debounced save
-    if (saveTimeout) {
-      clearTimeout(saveTimeout);
-    }
+  const editor = useCreateBlockNote({
+    schema,
+    initialContent: note?.content,
+  });
 
-    const timeout = setTimeout(() => {
-      updateNoteContent(noteId, newContent);
-    }, 300);
-
-    setSaveTimeout(timeout);
-  };
+  const debouncedUpdate = useMemo(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    return (blocks: Block[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        updateNoteContent(noteId, blocks);
+      }, 300);
+    };
+  }, [noteId]);
 
   if (!note) {
     return <div>Loading note...</div>;
   }
 
   return (
-      <BlocksManager
-        noteId={noteId}
-        content={note.content}
-        onChange={handleChange}
-      />
+    <BlockNoteView
+      editor={editor}
+      onChange={() => {
+        const blocks = editor.document;
+        debouncedUpdate(blocks);
+      }}
+    />
   );
 }

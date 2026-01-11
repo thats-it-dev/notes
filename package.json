@@ -11,6 +11,9 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@blocknote/core": "^0.46.1",
+    "@blocknote/mantine": "^0.46.1",
+    "@blocknote/react": "^0.46.1",
     "@tailwindcss/vite": "^4.1.18",
     "@thatsit/ui": "^0.0.4",
     "cmdk": "^1.1.1",

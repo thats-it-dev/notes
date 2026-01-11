@@ -1,7 +1,8 @@
 export interface Note {
   id: string;
   title: string;
-  content: string;
+  content: any; // BlockNote JSON structure (use any for now)
+  markdownCache: string; // Generated markdown for search
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -13,7 +14,7 @@ export interface Task {
   title: string;
   completed: boolean;
   noteId: string;
-  lineNumber: number;
+  blockId: string; // Changed from lineNumber
   tags: string[];
   createdAt: Date;
   updatedAt: Date;

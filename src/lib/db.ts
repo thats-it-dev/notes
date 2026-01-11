@@ -14,6 +14,17 @@ export class NotesDatabase extends Dexie {
       tasks: 'id, noteId, completed, *tags, createdAt, updatedAt',
       tags: 'name, usageCount, lastUsedAt'
     });
+
+    this.version(2).stores({
+      notes: 'id, title, *tags, lastOpenedAt, createdAt, updatedAt',
+      tasks: 'id, noteId, completed, *tags, createdAt, updatedAt',
+      tags: 'name, usageCount, lastUsedAt'
+    }).upgrade(tx => {
+      // Clean slate migration - wipe all data
+      return tx.table('notes').clear()
+        .then(() => tx.table('tasks').clear())
+        .then(() => tx.table('tags').clear());
+    });
   }
 }
 

@@ -8,9 +8,12 @@ export function TaskBlock({ content, onClick, onToggle }: TaskBlockProps) {
   const isCompleted = /^- \[x\]/i.test(content);
   const taskText = content.replace(/^- \[(x| )\] /i, '');
 
-  const handleCheckboxClick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation();
+  const handleCheckboxChange = () => {
     onToggle();
+  };
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
   return (
@@ -18,7 +21,8 @@ export function TaskBlock({ content, onClick, onToggle }: TaskBlockProps) {
       <input
         type="checkbox"
         checked={isCompleted}
-        onChange={handleCheckboxClick}
+        onClick={handleCheckboxClick}
+        onChange={handleCheckboxChange}
         className="mt-1 cursor-pointer"
       />
       <span className={isCompleted ? 'line-through' : ''}>

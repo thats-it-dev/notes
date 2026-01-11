@@ -63,6 +63,7 @@ export function CommandPalette() {
       <Command
         label="Command Menu"
         onClick={(e) => e.stopPropagation()}
+        loop
       >
         <Command.Input
           placeholder="Search notes or run command..."

@@ -27,7 +27,7 @@
 
 [cmdk-item]:hover,
 [cmdk-item][aria-selected="true"] {
-  background: var(--bg);
+  background: var(--primary-hover, rgba(59, 130, 246, 0.1));
 }
 
 [cmdk-group-heading] {

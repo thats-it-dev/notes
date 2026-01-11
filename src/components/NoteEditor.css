@@ -11,3 +11,12 @@
   font-family: var(--your-font);
 }
 */
+
+.bn-editor {
+  min-height: 400px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 1rem;
+  background-color: var(--bg);
+  height: 100vh;
+}

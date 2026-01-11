@@ -41,6 +41,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 
   return (
     <BlockNoteView
+      className="min-w-[600px] w-1/2 bn-editor"
       editor={editor}
       onChange={() => {
         const blocks = editor.document;

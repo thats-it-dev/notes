@@ -6,12 +6,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-      <main style={{
-        maxWidth: '1200px',
-        minHeight: '100vh',
-        margin: '0 auto',
-        padding: '2rem'
-      }}>
+      <main className="p-4 min-h-screen flex flex-row justify-center">
         {children}
       </main>
   );

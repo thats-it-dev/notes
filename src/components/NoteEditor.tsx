@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { updateNoteContent } from '../lib/noteOperations';
+import type { Note } from '../lib/types';
 import { useRef, useCallback } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
@@ -16,11 +17,21 @@ interface NoteEditorProps {
 
 export function NoteEditor({ noteId }: NoteEditorProps) {
   const note = useLiveQuery(() => db.notes.get(noteId), [noteId]);
+
+  // Don't render editor until note is loaded
+  if (!note) {
+    return <div>Loading note...</div>;
+  }
+
+  return <NoteEditorContent note={note} />;
+}
+
+function NoteEditorContent({ note }: { note: Note }) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const editor = useCreateBlockNote({
     schema,
-    initialContent: note?.content && note.content.length > 0
+    initialContent: note.content && note.content.length > 0
       ? note.content
       : undefined, // Let BlockNote create default content
   });
@@ -30,14 +41,9 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = setTimeout(() => {
-      updateNoteContent(noteId, blocks);
+      updateNoteContent(note.id, blocks);
     }, 300);
-  }, [noteId]);
-
-  // Don't render editor until note is loaded
-  if (!note) {
-    return <div>Loading note...</div>;
-  }
+  }, [note.id]);
 
   return (
     <BlockNoteView

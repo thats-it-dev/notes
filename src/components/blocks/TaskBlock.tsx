@@ -8,7 +8,7 @@ export function TaskBlock({ content, onClick, onToggle }: TaskBlockProps) {
   const isCompleted = /^- \[x\]/i.test(content);
   const taskText = content.replace(/^- \[(x| )\] /i, '');
 
-  const handleCheckboxClick = (e: React.MouseEvent) => {
+  const handleCheckboxClick = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     onToggle();
   };

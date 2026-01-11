@@ -4,11 +4,12 @@ import { parseMarkdownToBlocks, blocksToMarkdown } from '../lib/blockParser';
 import { Block } from './Block';
 
 interface BlocksManagerProps {
+  noteId: string;
   content: string;
   onChange: (content: string) => void;
 }
 
-export function BlocksManager({ content, onChange }: BlocksManagerProps) {
+export function BlocksManager({ noteId, content, onChange }: BlocksManagerProps) {
   const [blocks, setBlocks] = useState<BlockType[]>([]);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const hasInitialized = useRef(false);
@@ -16,16 +17,19 @@ export function BlocksManager({ content, onChange }: BlocksManagerProps) {
 
   // Parse markdown to blocks on mount and when content changes externally
   useEffect(() => {
-    const parsedBlocks = parseMarkdownToBlocks(content);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setBlocks(parsedBlocks);
+    const parseContent = async () => {
+      const parsedBlocks = await parseMarkdownToBlocks(content, noteId);
+      setBlocks(parsedBlocks);
 
-    // Set first block as active only on initial mount
-    if (!hasInitialized.current && parsedBlocks.length > 0) {
-      setActiveBlockId(parsedBlocks[0].id);
-      hasInitialized.current = true;
-    }
-  }, [content]);
+      // Set first block as active only on initial mount
+      if (!hasInitialized.current && parsedBlocks.length > 0) {
+        setActiveBlockId(parsedBlocks[0].id);
+        hasInitialized.current = true;
+      }
+    };
+
+    parseContent();
+  }, [content, noteId]);
 
   // Sync blocks to markdown and call onChange
   const syncToMarkdown = (updatedBlocks: BlockType[]) => {
@@ -45,22 +49,6 @@ export function BlocksManager({ content, onChange }: BlocksManagerProps) {
     const updatedBlocks = blocks.map((b) =>
       b.id === blockId ? { ...b, type: newType as BlockType['type'] } : b
     );
-    setBlocks(updatedBlocks);
-    syncToMarkdown(updatedBlocks);
-  };
-
-  const handleToggleTask = (blockId: string) => {
-    const updatedBlocks = blocks.map((b) => {
-      if (b.id === blockId && b.type === 'task') {
-        const isCompleted = /^- \[x\]/i.test(b.content);
-        const taskText = b.content.replace(/^- \[(x| )\] /i, '');
-        const newContent = isCompleted
-          ? `- [ ] ${taskText}`
-          : `- [x] ${taskText}`;
-        return { ...b, content: newContent };
-      }
-      return b;
-    });
     setBlocks(updatedBlocks);
     syncToMarkdown(updatedBlocks);
   };
@@ -113,7 +101,6 @@ export function BlocksManager({ content, onChange }: BlocksManagerProps) {
           onEnter={() => handleEnter(block.id)}
           onBackspace={() => handleBackspace(block.id)}
           onTypeChange={(newType) => handleBlockTypeChange(block.id, newType)}
-          onToggleTask={() => handleToggleTask(block.id)}
         />
       ))}
     </div>

@@ -6,16 +6,13 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div style={{
-      minHeight: '100vh',
-    }}>
       <main style={{
         maxWidth: '1200px',
+        minHeight: '100vh',
         margin: '0 auto',
         padding: '2rem'
       }}>
         {children}
       </main>
-    </div>
   );
 }

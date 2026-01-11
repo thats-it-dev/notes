@@ -10,7 +10,6 @@ interface BlockProps {
   onEnter: () => void;
   onBackspace: () => void;
   onTypeChange: (newType: string) => void;
-  onToggleTask: () => void;
 }
 
 export function Block({
@@ -21,7 +20,6 @@ export function Block({
   onEnter,
   onBackspace,
   onTypeChange,
-  onToggleTask,
 }: BlockProps) {
   return (
     <div className="mb-2">
@@ -38,7 +36,6 @@ export function Block({
         <BlockRenderer
           block={block}
           onActivate={onActivate}
-          onToggleTask={onToggleTask}
         />
       )}
     </div>

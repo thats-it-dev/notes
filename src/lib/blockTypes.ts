@@ -14,6 +14,7 @@ export interface Block {
   content: string;
   metadata?: {
     completed?: boolean; // for tasks
+    taskId?: string; // for tasks - references Task entity in DB
     language?: string; // for code blocks
   };
 }

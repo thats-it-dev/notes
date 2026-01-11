@@ -44,13 +44,13 @@ describe('detectBlockType', () => {
 });
 
 describe('parseMarkdownToBlocks', () => {
-  it('parses mixed markdown content', () => {
+  it('parses mixed markdown content', async () => {
     const markdown = `# Title
 Paragraph text
 - [ ] Task item
 - List item`;
 
-    const blocks = parseMarkdownToBlocks(markdown);
+    const blocks = await parseMarkdownToBlocks(markdown);
 
     expect(blocks).toHaveLength(4);
     expect(blocks[0].type).toBe('heading1');
@@ -64,13 +64,13 @@ Paragraph text
     expect(blocks[3].content).toBe('- List item');
   });
 
-  it('parses code blocks', () => {
+  it('parses code blocks', async () => {
     const markdown = `\`\`\`javascript
 const x = 1;
 console.log(x);
 \`\`\``;
 
-    const blocks = parseMarkdownToBlocks(markdown);
+    const blocks = await parseMarkdownToBlocks(markdown);
 
     expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe('code');
@@ -78,16 +78,16 @@ console.log(x);
     expect(blocks[0].metadata?.language).toBe('javascript');
   });
 
-  it('handles completed tasks', () => {
+  it('handles completed tasks', async () => {
     const markdown = '- [x] Completed task';
-    const blocks = parseMarkdownToBlocks(markdown);
+    const blocks = await parseMarkdownToBlocks(markdown);
 
     expect(blocks[0].type).toBe('task');
     expect(blocks[0].metadata?.completed).toBe(true);
   });
 
-  it('returns single empty paragraph for empty string', () => {
-    const blocks = parseMarkdownToBlocks('');
+  it('returns single empty paragraph for empty string', async () => {
+    const blocks = await parseMarkdownToBlocks('');
     expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe('paragraph');
     expect(blocks[0].content).toBe('');

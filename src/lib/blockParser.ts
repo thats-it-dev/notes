@@ -1,4 +1,5 @@
 import type { Block, BlockType } from './blockTypes';
+import { db } from './db';
 
 export function detectBlockType(content: string): BlockType {
   const trimmed = content.trim();
@@ -14,12 +15,15 @@ export function detectBlockType(content: string): BlockType {
   return 'paragraph';
 }
 
-export function parseMarkdownToBlocks(markdown: string): Block[] {
+export async function parseMarkdownToBlocks(markdown: string, noteId?: string): Promise<Block[]> {
   const lines = markdown.split('\n');
   const blocks: Block[] = [];
   let currentCodeBlock: string[] = [];
   let inCodeBlock = false;
   let codeLanguage = '';
+
+  // Fetch tasks for this note if noteId provided
+  const tasks = noteId ? await db.tasks.where({ noteId }).toArray() : [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -70,7 +74,12 @@ export function parseMarkdownToBlocks(markdown: string): Block[] {
       // Add task metadata
       if (type === 'task') {
         const isCompleted = line.match(/^- \[x\]/i);
-        block.metadata = { completed: !!isCompleted };
+        // Find matching task entity by line number
+        const matchingTask = tasks.find(t => t.lineNumber === i);
+        block.metadata = {
+          completed: !!isCompleted,
+          taskId: matchingTask?.id
+        };
       }
 
       blocks.push(block);

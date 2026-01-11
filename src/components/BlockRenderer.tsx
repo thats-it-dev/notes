@@ -8,10 +8,9 @@ import { ParagraphBlock } from './blocks/ParagraphBlock';
 interface BlockRendererProps {
   block: BlockType;
   onActivate: () => void;
-  onToggleTask?: () => void;
 }
 
-export function BlockRenderer({ block, onActivate, onToggleTask }: BlockRendererProps) {
+export function BlockRenderer({ block, onActivate }: BlockRendererProps) {
   switch (block.type) {
     case 'heading1':
     case 'heading2':
@@ -23,7 +22,7 @@ export function BlockRenderer({ block, onActivate, onToggleTask }: BlockRenderer
         <TaskBlock
           content={block.content}
           onClick={onActivate}
-          onToggle={onToggleTask || (() => {})}
+          taskId={block.metadata?.taskId}
         />
       );
 

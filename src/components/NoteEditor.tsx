@@ -32,6 +32,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   return (
     <div style={{ maxWidth: '800px', height: '100vh', margin: '0 auto' }}>
       <BlocksManager
+        noteId={noteId}
         content={note.content}
         onChange={handleChange}
       />

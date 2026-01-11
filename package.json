@@ -11,6 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
     "@thatsit/ui": "^0.0.3",
     "cmdk": "^1.1.1",
     "dexie": "^4.2.1",
@@ -18,6 +19,7 @@
     "fuse.js": "^7.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "tailwindcss": "^4.1.18",
     "uuid": "^13.0.0",
     "zustand": "^5.0.9"
   },

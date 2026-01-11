@@ -1,15 +1,19 @@
+import { toggleTask } from '../../lib/taskOperations';
+
 interface TaskBlockProps {
   content: string;
   onClick: () => void;
-  onToggle: () => void;
+  taskId?: string;
 }
 
-export function TaskBlock({ content, onClick, onToggle }: TaskBlockProps) {
+export function TaskBlock({ content, onClick, taskId }: TaskBlockProps) {
   const isCompleted = /^- \[x\]/i.test(content);
   const taskText = content.replace(/^- \[(x| )\] /i, '');
 
   const handleCheckboxChange = () => {
-    onToggle();
+    if (taskId) {
+      toggleTask(taskId);
+    }
   };
 
   const handleCheckboxClick = (e: React.MouseEvent) => {

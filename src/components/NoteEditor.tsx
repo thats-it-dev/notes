@@ -18,7 +18,9 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 
   const editor = useCreateBlockNote({
     schema,
-    initialContent: note?.content || [],
+    initialContent: note?.content && note.content.length > 0
+      ? note.content
+      : undefined, // Let BlockNote create default content
   });
 
   const debouncedUpdate = useMemo(() => {

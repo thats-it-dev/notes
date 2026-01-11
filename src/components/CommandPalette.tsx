@@ -59,9 +59,7 @@ export function CommandPalette() {
       }}
       onClick={() => setCommandPaletteOpen(false)}
     >
-      <Command.Dialog
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
+      <Command
         label="Command Menu"
         style={{
           background: 'white',
@@ -117,7 +115,7 @@ export function CommandPalette() {
             ))}
           </Command.Group>
         </Command.List>
-      </Command.Dialog>
+      </Command>
     </div>,
     document.body
   );

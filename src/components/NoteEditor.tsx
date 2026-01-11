@@ -6,6 +6,7 @@ import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
+import './NoteEditor.css'; // Custom BlockNote styles
 import type { Block } from '@blocknote/core';
 import { schema } from '../lib/blockNoteSchema';
 
@@ -17,13 +18,12 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   const note = useLiveQuery(() => db.notes.get(noteId), [noteId]);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Create editor with proper initial content
   const editor = useCreateBlockNote({
     schema,
     initialContent: note?.content && note.content.length > 0
       ? note.content
-      : undefined,
-  }, [noteId, note?.content]); // Recreate editor when noteId or content changes
+      : undefined, // Let BlockNote create default content
+  });
 
   const debouncedUpdate = useCallback((blocks: Block[]) => {
     if (timeoutRef.current) {

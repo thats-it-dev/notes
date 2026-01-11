@@ -37,7 +37,7 @@ function App() {
   return (
     <>
       <Layout>
-        <NoteEditor noteId={currentNoteId} />
+        <NoteEditor key={currentNoteId} noteId={currentNoteId} />
       </Layout>
       <TaskPanel />
       <CommandPalette />

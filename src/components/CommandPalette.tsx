@@ -33,6 +33,7 @@ export function CommandPalette() {
 
   const handleNewNote = async () => {
     const note = await createNote();
+    await updateNoteLastOpened(note.id);
     setCurrentNote(note.id);
     setCommandPaletteOpen(false);
   };
@@ -65,6 +66,7 @@ export function CommandPalette() {
       >
         <Command.Input
           placeholder="Search notes or run command..."
+          autoFocus
         />
         <Command.List>
           <Command.Empty>

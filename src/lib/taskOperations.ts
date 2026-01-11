@@ -1,4 +1,5 @@
 import { db } from './db';
+import { updateTaskInBlocks } from './blockNoteConverters';
 
 export async function toggleTask(taskId: string): Promise<void> {
   const task = await db.tasks.get(taskId);
@@ -12,25 +13,18 @@ export async function toggleTask(taskId: string): Promise<void> {
     updatedAt: new Date()
   });
 
-  // Update note content
+  // Update note content - find and update the block
   const note = await db.notes.get(task.noteId);
   if (!note) return;
 
-  const lines = note.content.split('\n');
-  const line = lines[task.lineNumber];
+  const updatedContent = updateTaskInBlocks(
+    note.content,
+    task.blockId,
+    newCompleted
+  );
 
-  if (line) {
-    // Replace [ ] with [x] or vice versa
-    const updatedLine = newCompleted
-      ? line.replace(/\[\s\]/, '[x]')
-      : line.replace(/\[x\]/i, '[ ]');
-
-    lines[task.lineNumber] = updatedLine;
-    const updatedContent = lines.join('\n');
-
-    await db.notes.update(task.noteId, {
-      content: updatedContent,
-      updatedAt: new Date()
-    });
-  }
+  await db.notes.update(task.noteId, {
+    content: updatedContent,
+    updatedAt: new Date()
+  });
 }

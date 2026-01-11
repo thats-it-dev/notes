@@ -4,15 +4,16 @@ import type { Note, Task } from './types';
 import { extractTasks, blocksToMarkdown } from './blockNoteConverters';
 import type { Block } from '@blocknote/core';
 
-export async function createNote(initialBlocks: Block[] = []): Promise<Note> {
+export async function createNote(initialBlocks?: Block[]): Promise<Note> {
   const now = new Date();
-  const markdownCache = blocksToMarkdown(initialBlocks);
+  const blocks = initialBlocks || [];
+  const markdownCache = blocksToMarkdown(blocks);
   const title = extractTitle(markdownCache);
 
   const note: Note = {
     id: uuidv4(),
     title,
-    content: initialBlocks,
+    content: blocks,
     markdownCache,
     tags: [],
     createdAt: now,
@@ -23,7 +24,7 @@ export async function createNote(initialBlocks: Block[] = []): Promise<Note> {
   await db.notes.add(note);
 
   // Create tasks from blocks
-  const tasks = extractTasks(initialBlocks);
+  const tasks = extractTasks(blocks);
   for (const taskData of tasks) {
     await createTask(
       note.id,

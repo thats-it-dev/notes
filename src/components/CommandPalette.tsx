@@ -4,6 +4,7 @@ import { db } from '../lib/db';
 import { useAppStore } from '../store/appStore';
 import { createNote, updateNoteLastOpened } from '../lib/noteOperations';
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './CommandPalette.css';
 
 export function CommandPalette() {
@@ -44,7 +45,7 @@ export function CommandPalette() {
 
   if (!commandPaletteOpen) return null;
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -117,6 +118,7 @@ export function CommandPalette() {
           </Command.Group>
         </Command.List>
       </Command.Dialog>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -3,12 +3,12 @@ import type { Block as BlockType } from '../lib/blockTypes';
 import { parseMarkdownToBlocks, blocksToMarkdown } from '../lib/blockParser';
 import { Block } from './Block';
 
-interface BlockEditorProps {
+interface BlocksManagerProps {
   content: string;
   onChange: (content: string) => void;
 }
 
-export function BlockEditor({ content, onChange }: BlockEditorProps) {
+export function BlocksManager({ content, onChange }: BlocksManagerProps) {
   const [blocks, setBlocks] = useState<BlockType[]>([]);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const hasInitialized = useRef(false);
@@ -88,8 +88,6 @@ export function BlockEditor({ content, onChange }: BlockEditorProps) {
   return (
     <div
       style={{
-        border: '1px solid #ddd',
-        borderRadius: '4px',
         padding: '1rem',
         minHeight: '400px',
         fontFamily: 'system-ui, sans-serif',

@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { updateNoteContent } from '../lib/noteOperations';
 import { useState } from 'react';
-import { BlockEditor } from './BlockEditor';
+import { BlocksManager } from './BlocksManager';
 
 interface NoteEditorProps {
   noteId: string;
@@ -30,9 +30,8 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   }
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <h2 style={{ marginBottom: '1rem' }}>{note.title}</h2>
-      <BlockEditor
+    <div style={{ maxWidth: '800px', height: '100vh', margin: '0 auto' }}>
+      <BlocksManager
         content={note.content}
         onChange={handleChange}
       />

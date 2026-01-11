@@ -23,3 +23,28 @@ export function getPlainText(content: any[] | undefined): string {
     return '';
   }).join('');
 }
+
+export function extractTasks(blocks: Block[]): ExtractedTask[] {
+  const tasks: ExtractedTask[] = [];
+
+  function traverse(block: Block) {
+    // BlockNote uses different block types - check for checkListItem
+    if (block.type === 'checkListItem') {
+      const title = getPlainText(block.content);
+      tasks.push({
+        blockId: block.id,
+        title,
+        completed: (block.props?.checked as boolean) || false,
+        tags: [] // Will extract tags later
+      });
+    }
+
+    // Recursively check children
+    if (block.children && Array.isArray(block.children)) {
+      block.children.forEach(child => traverse(child as Block));
+    }
+  }
+
+  blocks.forEach(traverse);
+  return tasks;
+}

@@ -16,12 +16,13 @@ interface NoteEditorProps {
 export function NoteEditor({ noteId }: NoteEditorProps) {
   const note = useLiveQuery(() => db.notes.get(noteId), [noteId]);
 
+  // Create editor with proper initial content
   const editor = useCreateBlockNote({
     schema,
     initialContent: note?.content && note.content.length > 0
       ? note.content
-      : undefined, // Let BlockNote create default content
-  });
+      : undefined,
+  }, [noteId, note?.content]); // Recreate editor when noteId or content changes
 
   const debouncedUpdate = useMemo(() => {
     let timeoutId: ReturnType<typeof setTimeout>;

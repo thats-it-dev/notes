@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { updateNoteContent } from '../lib/noteOperations';
-import { useMemo } from 'react';
+import { useRef, useCallback } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/core/fonts/inter.css';
@@ -15,6 +15,7 @@ interface NoteEditorProps {
 
 export function NoteEditor({ noteId }: NoteEditorProps) {
   const note = useLiveQuery(() => db.notes.get(noteId), [noteId]);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Create editor with proper initial content
   const editor = useCreateBlockNote({
@@ -24,14 +25,13 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       : undefined,
   }, [noteId, note?.content]); // Recreate editor when noteId or content changes
 
-  const debouncedUpdate = useMemo(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-    return (blocks: Block[]) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        updateNoteContent(noteId, blocks);
-      }, 300);
-    };
+  const debouncedUpdate = useCallback((blocks: Block[]) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      updateNoteContent(noteId, blocks);
+    }, 300);
   }, [noteId]);
 
   // Don't render editor until note is loaded

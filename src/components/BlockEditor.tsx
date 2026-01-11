@@ -36,24 +36,28 @@ export function BlockEditor({
     }
   }, []);
 
-  // Auto-resize textarea based on content
+  // Initial resize on mount
   useEffect(() => {
     if (textareaRef.current) {
       const textarea = textareaRef.current;
-      // Reset height to get accurate scrollHeight
       textarea.style.height = 'auto';
-      // Set height to match content
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
-  }, [content]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
+    const textarea = e.target;
+
     setContent(newContent);
+
+    // Auto-resize immediately during typing
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
 
     // Show slash menu if content is '/'
     if (newContent === '/') {
-      const rect = e.target.getBoundingClientRect();
+      const rect = textarea.getBoundingClientRect();
       setSlashMenuPosition({
         top: rect.bottom,
         left: rect.left,

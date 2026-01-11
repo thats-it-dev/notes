@@ -77,15 +77,24 @@ export function BlocksManager({ noteId, content, onChange }: BlocksManagerProps)
     if (blocks.length <= 1) return;
 
     const blockIndex = blocks.findIndex((b) => b.id === blockId);
-    const updatedBlocks = blocks.filter((b) => b.id !== blockId);
+    if (blockIndex === 0) return; // Can't backspace from first block
 
-    // Focus previous block
-    const prevBlock = updatedBlocks[Math.max(0, blockIndex - 1)];
-    if (prevBlock) {
-      setActiveBlockId(prevBlock.id);
-    }
+    const currentBlock = blocks[blockIndex];
+    const prevBlock = blocks[blockIndex - 1];
+
+    // Merge current block's content into previous block
+    const mergedContent = prevBlock.content + currentBlock.content;
+
+    const updatedBlocks = blocks
+      .filter((b) => b.id !== blockId)
+      .map((b) =>
+        b.id === prevBlock.id
+          ? { ...b, content: mergedContent }
+          : b
+      );
 
     setBlocks(updatedBlocks);
+    setActiveBlockId(prevBlock.id);
     syncToMarkdown(updatedBlocks);
   };
 

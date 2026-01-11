@@ -80,3 +80,32 @@ function blockToMarkdown(block: Block): string {
       return content;
   }
 }
+
+export function updateTaskInBlocks(
+  blocks: Block[],
+  blockId: string,
+  completed: boolean
+): Block[] {
+  function updateBlock(block: Block): Block {
+    if (block.id === blockId && block.type === 'checkListItem') {
+      return {
+        ...block,
+        props: {
+          ...block.props,
+          checked: completed
+        }
+      };
+    }
+
+    if (block.children && Array.isArray(block.children)) {
+      return {
+        ...block,
+        children: block.children.map(child => updateBlock(child as Block))
+      };
+    }
+
+    return block;
+  }
+
+  return blocks.map(updateBlock);
+}

@@ -1,17 +1,20 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './db';
 import type { Note, Task } from './types';
-import { parseContent } from './parser';
+import { extractTasks, blocksToMarkdown } from './blockNoteConverters';
+import type { Block } from '@blocknote/core';
 
-export async function createNote(content: string = ''): Promise<Note> {
-  const parsed = parseContent(content);
+export async function createNote(initialBlocks: Block[] = []): Promise<Note> {
   const now = new Date();
+  const markdownCache = blocksToMarkdown(initialBlocks);
+  const title = extractTitle(markdownCache);
 
   const note: Note = {
     id: uuidv4(),
-    title: parsed.title,
-    content,
-    tags: parsed.tags,
+    title,
+    content: initialBlocks,
+    markdownCache,
+    tags: [],
     createdAt: now,
     updatedAt: now,
     lastOpenedAt: now,
@@ -19,39 +22,61 @@ export async function createNote(content: string = ''): Promise<Note> {
 
   await db.notes.add(note);
 
-  // Create tasks
-  for (const taskData of parsed.tasks) {
-    await createTask(note.id, taskData.title, taskData.completed, taskData.lineNumber, taskData.tags);
+  // Create tasks from blocks
+  const tasks = extractTasks(initialBlocks);
+  for (const taskData of tasks) {
+    await createTask(
+      note.id,
+      taskData.title,
+      taskData.completed,
+      taskData.blockId,
+      taskData.tags
+    );
   }
-
-  // Update tag counts
-  await updateTagCounts(parsed.tags);
 
   return note;
 }
 
-export async function updateNoteContent(noteId: string, content: string): Promise<void> {
+function extractTitle(markdown: string): string {
+  const firstLine = markdown.split('\n')[0];
+  if (firstLine?.startsWith('# ')) {
+    return firstLine.substring(2).trim();
+  }
+  return 'Untitled';
+}
+
+export async function updateNoteContent(
+  noteId: string,
+  blocks: Block[]
+): Promise<void> {
   const note = await db.notes.get(noteId);
   if (!note) return;
 
   const oldTags = note.tags;
-  const parsed = parseContent(content);
+  const markdownCache = blocksToMarkdown(blocks);
+  const title = extractTitle(markdownCache);
+  const tasks = extractTasks(blocks);
+
+  // Extract tags (for now, empty - we'll add tag extraction later)
+  const newTags: string[] = [];
+
   const now = new Date();
 
   // Update note
   await db.notes.update(noteId, {
-    title: parsed.title,
-    content,
-    tags: parsed.tags,
+    title,
+    content: blocks,
+    markdownCache,
+    tags: newTags,
     updatedAt: now,
   });
 
-  // Update tag counts (decrement old, increment new)
+  // Update tag counts
   await decrementTagCounts(oldTags);
-  await updateTagCounts(parsed.tags);
+  await updateTagCounts(newTags);
 
   // Reconcile tasks
-  await reconcileTasks(noteId, parsed.tasks);
+  await reconcileTasks(noteId, tasks);
 }
 
 export async function getMostRecentNote(): Promise<Note | undefined> {
@@ -67,7 +92,7 @@ async function createTask(
   noteId: string,
   title: string,
   completed: boolean,
-  lineNumber: number,
+  blockId: string,
   tags: string[]
 ): Promise<Task> {
   const now = new Date();
@@ -76,7 +101,7 @@ async function createTask(
     title,
     completed,
     noteId,
-    lineNumber,
+    blockId,
     tags,
     createdAt: now,
     updatedAt: now,
@@ -90,19 +115,18 @@ async function createTask(
 
 async function reconcileTasks(
   noteId: string,
-  newTasks: Array<{ title: string; completed: boolean; lineNumber: number; tags: string[] }>
+  newTasks: Array<{ title: string; completed: boolean; blockId: string; tags: string[] }>
 ): Promise<void> {
   const existingTasks = await db.tasks.where({ noteId }).toArray();
 
   // Simple strategy: delete all old tasks, create new ones
-  // TODO: Implement fuzzy matching for task identity preservation
   for (const task of existingTasks) {
     await db.tasks.delete(task.id);
     await decrementTagCounts(task.tags);
   }
 
   for (const taskData of newTasks) {
-    await createTask(noteId, taskData.title, taskData.completed, taskData.lineNumber, taskData.tags);
+    await createTask(noteId, taskData.title, taskData.completed, taskData.blockId, taskData.tags);
   }
 }
 

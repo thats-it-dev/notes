@@ -5,10 +5,8 @@
   bottom: 0;
   width: 400px;
   background: var(--bg);
-  border-left: 1px solid var(--border);
   padding: 2rem;
   overflow-y: auto;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .task-panel-header {

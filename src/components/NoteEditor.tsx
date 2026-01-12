@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { updateNoteContent } from '../lib/noteOperations';
 import type { Note } from '../lib/types';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/core/fonts/inter.css';
@@ -28,6 +28,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 
 function NoteEditorContent({ note }: { note: Note }) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const isUpdatingRef = useRef(false);
 
   const editor = useCreateBlockNote({
     schema,
@@ -40,14 +41,26 @@ function NoteEditorContent({ note }: { note: Note }) {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    isUpdatingRef.current = true;
     timeoutRef.current = setTimeout(() => {
       updateNoteContent(note.id, blocks);
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 100);
     }, 300);
   }, [note.id]);
 
+  // Sync editor with database changes (e.g., from task panel toggles)
+  useEffect(() => {
+    if (isUpdatingRef.current) return; // Skip if update came from this editor
+    if (note.content && note.content.length > 0) {
+      editor.replaceBlocks(editor.document, note.content);
+    }
+  }, [note.content, editor]);
+
   return (
     <BlockNoteView
-      className="min-w-[600px] w-1/2 bn-editor"
+      className="w-full md:w-1/2 bn-editor"
       editor={editor}
       onChange={() => {
         const blocks = editor.document;

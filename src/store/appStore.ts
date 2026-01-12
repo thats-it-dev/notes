@@ -3,6 +3,7 @@ import { create } from 'zustand';
 interface AppStore {
   currentNoteId: string | null;
   taskPanelOpen: boolean;
+  settingsPanelOpen: boolean;
   commandPaletteOpen: boolean;
   selectedTags: string[];
   taskFilter: 'all' | 'active' | 'completed';
@@ -10,6 +11,8 @@ interface AppStore {
   setCurrentNote: (id: string | null) => void;
   toggleTaskPanel: () => void;
   setTaskPanelOpen: (open: boolean) => void;
+  toggleSettingsPanel: () => void;
+  setSettingsPanelOpen: (open: boolean) => void;
   toggleCommandPalette: () => void;
   setCommandPaletteOpen: (open: boolean) => void;
   addTagFilter: (tag: string) => void;
@@ -21,6 +24,7 @@ interface AppStore {
 export const useAppStore = create<AppStore>((set) => ({
   currentNoteId: null,
   taskPanelOpen: false,
+  settingsPanelOpen: false,
   commandPaletteOpen: false,
   selectedTags: [],
   taskFilter: 'all',
@@ -30,6 +34,10 @@ export const useAppStore = create<AppStore>((set) => ({
   toggleTaskPanel: () => set((state) => ({ taskPanelOpen: !state.taskPanelOpen })),
 
   setTaskPanelOpen: (open) => set({ taskPanelOpen: open }),
+
+  toggleSettingsPanel: () => set((state) => ({ settingsPanelOpen: !state.settingsPanelOpen })),
+
+  setSettingsPanelOpen: (open) => set({ settingsPanelOpen: open }),
 
   toggleCommandPalette: () => set((state) => ({
     commandPaletteOpen: !state.commandPaletteOpen

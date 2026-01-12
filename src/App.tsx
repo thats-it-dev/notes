@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
 import { NoteEditor } from './components/NoteEditor';
-import { TaskPanel } from './components/TaskPanel';
+import { SettingsPanel } from './components/SettingsPanel';
 import { CommandPalette } from './components/CommandPalette';
 import { Layout } from './components/Layout';
 import '@thatsit/ui/index.css';
@@ -39,7 +39,7 @@ function App() {
       <Layout>
         <NoteEditor key={currentNoteId} noteId={currentNoteId} />
       </Layout>
-      <TaskPanel />
+      <SettingsPanel />
       <CommandPalette />
     </>
   );

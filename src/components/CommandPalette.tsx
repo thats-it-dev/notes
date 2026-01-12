@@ -12,7 +12,7 @@ export function CommandPalette() {
     commandPaletteOpen,
     setCommandPaletteOpen,
     setCurrentNote,
-    toggleTaskPanel
+    toggleSettingsPanel
   } = useAppStore();
 
   const notes = useLiveQuery(() =>
@@ -76,12 +76,18 @@ export function CommandPalette() {
 
           <Command.Group heading="Commands">
             <Command.Item
-              onSelect={handleNewNote}
+              onSelect={() => {
+                handleNewNote();
+                setCommandPaletteOpen(false);
+              }}
             >
             Create Note
             </Command.Item>
             <Command.Item
-              onSelect={toggleTaskPanel}
+              onSelect={() => {
+                toggleSettingsPanel();
+                setCommandPaletteOpen(false);
+              }}
             >
             Settings
             </Command.Item>

@@ -43,7 +43,7 @@ export function TaskPanel() {
           className="task-panel-close"
           onClick={() => setTaskPanelOpen(false)}
         >
-          Close
+          X
         </button>
       </div>
 

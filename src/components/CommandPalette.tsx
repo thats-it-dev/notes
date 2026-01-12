@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/appStore';
 import { createNote, updateNoteLastOpened } from '../lib/noteOperations';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './CommandPalette.css';
 
@@ -15,9 +15,20 @@ export function CommandPalette() {
     toggleSettingsPanel
   } = useAppStore();
 
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
   const notes = useLiveQuery(() =>
     db.notes.orderBy('lastOpenedAt').reverse().toArray()
   );
+
+  const tags = useLiveQuery(() =>
+    db.tags.orderBy('usageCount').reverse().toArray()
+  );
+
+  // Filter notes by selected tag
+  const filteredNotes = selectedTag
+    ? notes?.filter(note => note.tags.includes(selectedTag))
+    : notes;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -81,7 +92,7 @@ export function CommandPalette() {
                 setCommandPaletteOpen(false);
               }}
             >
-            Create Note
+              Create Note
             </Command.Item>
             <Command.Item
               onSelect={() => {
@@ -89,18 +100,42 @@ export function CommandPalette() {
                 setCommandPaletteOpen(false);
               }}
             >
-            Settings
+              Settings
             </Command.Item>
+            {selectedTag && (
+              <Command.Item onSelect={() => setSelectedTag(null)}>
+                Clear filter: #{selectedTag}
+              </Command.Item>
+            )}
           </Command.Group>
 
-          <Command.Group heading="Recent Notes">
-            {notes?.map(note => (
+          {tags && tags.length > 0 && !selectedTag && (
+            <Command.Group heading="Tags">
+              {tags.map(tag => (
+                <Command.Item
+                  key={tag.name}
+                  value={`tag:${tag.name}`}
+                  onSelect={() => setSelectedTag(tag.name)}
+                >
+                  #{tag.name} ({tag.usageCount})
+                </Command.Item>
+              ))}
+            </Command.Group>
+          )}
+
+          <Command.Group heading={selectedTag ? `Notes tagged #${selectedTag}` : "Recent Notes"}>
+            {filteredNotes?.map(note => (
               <Command.Item
                 key={note.id}
                 value={note.title}
                 onSelect={() => handleSelectNote(note.id)}
               >
-                {note.title}
+                {note.title || 'Untitled'}
+                {note.tags.length > 0 && (
+                  <span className="note-tags">
+                    {note.tags.map(t => `#${t}`).join(' ')}
+                  </span>
+                )}
               </Command.Item>
             ))}
           </Command.Group>

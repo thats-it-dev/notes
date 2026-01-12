@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './db';
 import type { Note, Task } from './types';
-import { extractTasks, blocksToMarkdown } from './blockNoteConverters';
+import { extractTasks, blocksToMarkdown, extractTags } from './blockNoteConverters';
 import type { Block } from '@blocknote/core';
 
 export async function createNote(initialBlocks?: Block[]): Promise<Note> {
@@ -9,19 +9,23 @@ export async function createNote(initialBlocks?: Block[]): Promise<Note> {
   const blocks = initialBlocks || [];
   const markdownCache = blocksToMarkdown(blocks);
   const title = extractTitle(markdownCache);
+  const tags = extractTags(markdownCache);
 
   const note: Note = {
     id: uuidv4(),
     title,
     content: blocks,
     markdownCache,
-    tags: [],
+    tags,
     createdAt: now,
     updatedAt: now,
     lastOpenedAt: now,
   };
 
   await db.notes.add(note);
+
+  // Update tag counts
+  await updateTagCounts(tags);
 
   // Create tasks from blocks
   const tasks = extractTasks(blocks);
@@ -58,8 +62,8 @@ export async function updateNoteContent(
   const title = extractTitle(markdownCache);
   const tasks = extractTasks(blocks);
 
-  // Extract tags (for now, empty - we'll add tag extraction later)
-  const newTags: string[] = [];
+  // Extract #hashtags from content
+  const newTags = extractTags(markdownCache);
 
   const now = new Date();
 

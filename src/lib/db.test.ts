@@ -13,7 +13,8 @@ describe('Database', () => {
     const note = {
       id: uuidv4(),
       title: 'Test Note',
-      content: '# Test\nContent here',
+      content: [],
+      markdownCache: '# Test\nContent here',
       tags: [],
       createdAt: new Date(),
       updatedAt: new Date(),

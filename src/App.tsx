@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAppStore } from './store/appStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
 import { NoteEditor } from './components/NoteEditor';
@@ -9,15 +9,18 @@ import '@thatsit/ui/index.css';
 
 function App() {
   const { currentNoteId, setCurrentNote } = useAppStore();
+  const initRef = useRef(false);
 
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
     async function initializeApp() {
       const recentNote = await getMostRecentNote();
 
       if (recentNote) {
         setCurrentNote(recentNote.id);
       } else {
-        // Create welcome note with undefined to let BlockNote create default content
         const welcomeNote = await createNote(undefined);
         setCurrentNote(welcomeNote.id);
       }

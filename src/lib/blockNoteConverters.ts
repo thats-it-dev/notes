@@ -81,6 +81,21 @@ function blockToMarkdown(block: Block): string {
   }
 }
 
+// Extract #hashtags from markdown content
+export function extractTags(markdown: string): string[] {
+  // Match hashtags: # followed by word characters, but not at start of line (headings)
+  // Also avoid matching inside URLs or code blocks
+  const tagRegex = /(?:^|[^#\w/])#([a-zA-Z][a-zA-Z0-9_-]*)/g;
+  const tags = new Set<string>();
+
+  let match;
+  while ((match = tagRegex.exec(markdown)) !== null) {
+    tags.add(match[1].toLowerCase());
+  }
+
+  return Array.from(tags);
+}
+
 export function updateTaskInBlocks(
   blocks: Block[],
   blockId: string,

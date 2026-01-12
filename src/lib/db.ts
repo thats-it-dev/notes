@@ -25,6 +25,15 @@ export class NotesDatabase extends Dexie {
         .then(() => tx.table('tasks').clear())
         .then(() => tx.table('tags').clear());
     });
+
+    this.version(3).stores({
+      notes: 'id, title, *tags, lastOpenedAt, createdAt, updatedAt',
+      tasks: 'id, noteId, completed, *tags, createdAt, updatedAt',
+      tags: 'name, usageCount, lastUsedAt'
+    }).upgrade(tx => {
+      // Force clean slate for tag fix
+      return tx.table('tags').clear();
+    });
   }
 }
 

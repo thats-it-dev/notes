@@ -50,4 +50,29 @@ describe('Note Operations', () => {
     const recent = await getMostRecentNote();
     expect(recent?.id).toBe(note2.id);
   });
+
+  it('should extract tags from content', async () => {
+    const note = await createNote();
+
+    const blocks = [
+      {
+        id: '1',
+        type: 'paragraph',
+        props: {},
+        content: [{ type: 'text', text: 'Hello #world this is #test', styles: {} }],
+        children: [],
+      }
+    ] as any;
+
+    await updateNoteContent(note.id, blocks);
+
+    const updated = await db.notes.get(note.id);
+    expect(updated?.tags).toContain('world');
+    expect(updated?.tags).toContain('test');
+
+    // Tags should also be in the tags table
+    const worldTag = await db.tags.get('world');
+    expect(worldTag).toBeDefined();
+    expect(worldTag?.usageCount).toBe(1);
+  });
 });

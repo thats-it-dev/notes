@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Notes - That\'s It',
+        name: 'Notes | That\'s It',
         short_name: 'Notes',
         description: 'A simple, fast notes app that works offline',
         theme_color: '#1a1a1a',

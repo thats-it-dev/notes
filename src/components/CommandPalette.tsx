@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/appStore';
 import { createNote, updateNoteLastOpened } from '../lib/noteOperations';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import './CommandPalette.css';
 
@@ -15,20 +15,25 @@ export function CommandPalette() {
     toggleSettingsPanel
   } = useAppStore();
 
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const notes = useLiveQuery(() =>
     db.notes.orderBy('lastOpenedAt').reverse().toArray()
   );
 
-  const tags = useLiveQuery(() =>
-    db.tags.orderBy('usageCount').reverse().toArray()
-  );
+  // Detect if searching for a tag (starts with #)
+  const searchTag = search.startsWith('#') ? search.slice(1).toLowerCase() : null;
 
-  // Filter notes by selected tag
-  const filteredNotes = selectedTag
-    ? notes?.filter(note => note.tags.includes(selectedTag))
-    : notes;
+  // Filter notes by tag when searching with #
+  const displayNotes = useMemo(() => {
+    if (!notes) return [];
+    if (searchTag) {
+      return notes.filter(note =>
+        note.tags.some(tag => tag.toLowerCase().includes(searchTag))
+      );
+    }
+    return notes;
+  }, [notes, searchTag]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,17 +47,22 @@ export function CommandPalette() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [commandPaletteOpen, setCommandPaletteOpen]);
 
+  const closePalette = () => {
+    setCommandPaletteOpen(false);
+    setSearch('');
+  };
+
   const handleNewNote = async () => {
     const note = await createNote();
     await updateNoteLastOpened(note.id);
     setCurrentNote(note.id);
-    setCommandPaletteOpen(false);
+    closePalette();
   };
 
   const handleSelectNote = async (noteId: string) => {
     await updateNoteLastOpened(noteId);
     setCurrentNote(noteId);
-    setCommandPaletteOpen(false);
+    closePalette();
   };
 
   if (!commandPaletteOpen) return null;
@@ -69,65 +79,48 @@ export function CommandPalette() {
         paddingTop: '20vh',
         zIndex: 100
       }}
-      onClick={() => setCommandPaletteOpen(false)}
+      onClick={closePalette}
     >
       <Command
         label="Command Menu"
         onClick={(e) => e.stopPropagation()}
         loop
+        shouldFilter={!searchTag}
       >
         <Command.Input
-          placeholder="Search notes or run command..."
+          placeholder="Search notes, #tags, or commands..."
           autoFocus
+          value={search}
+          onValueChange={setSearch}
         />
         <Command.List>
           <Command.Empty>
-            No results found
+            {searchTag
+              ? `No notes found with tag #${searchTag}`
+              : 'No results found'}
           </Command.Empty>
 
-          <Command.Group heading="Commands">
-            <Command.Item
-              onSelect={() => {
-                handleNewNote();
-                setCommandPaletteOpen(false);
-              }}
-            >
-              Create Note
-            </Command.Item>
-            <Command.Item
-              onSelect={() => {
-                toggleSettingsPanel();
-                setCommandPaletteOpen(false);
-              }}
-            >
-              Settings
-            </Command.Item>
-            {selectedTag && (
-              <Command.Item onSelect={() => setSelectedTag(null)}>
-                Clear filter: #{selectedTag}
+          {!searchTag && (
+            <Command.Group heading="Commands">
+              <Command.Item onSelect={handleNewNote}>
+                Create Note
               </Command.Item>
-            )}
-          </Command.Group>
-
-          {tags && tags.length > 0 && !selectedTag && (
-            <Command.Group heading="Tags">
-              {tags.map(tag => (
-                <Command.Item
-                  key={tag.name}
-                  value={`tag:${tag.name}`}
-                  onSelect={() => setSelectedTag(tag.name)}
-                >
-                  #{tag.name} ({tag.usageCount})
-                </Command.Item>
-              ))}
+              <Command.Item
+                onSelect={() => {
+                  toggleSettingsPanel();
+                  closePalette();
+                }}
+              >
+                Settings
+              </Command.Item>
             </Command.Group>
           )}
 
-          <Command.Group heading={selectedTag ? `Notes tagged #${selectedTag}` : "Recent Notes"}>
-            {filteredNotes?.map(note => (
+          <Command.Group heading={searchTag ? `Notes with #${searchTag}` : "Recent Notes"}>
+            {displayNotes.map(note => (
               <Command.Item
                 key={note.id}
-                value={note.title}
+                value={searchTag ? note.id : note.title}
                 onSelect={() => handleSelectNote(note.id)}
               >
                 {note.title || 'Untitled'}

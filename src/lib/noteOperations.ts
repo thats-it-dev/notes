@@ -144,7 +144,7 @@ async function updateTagCounts(tags: string[]): Promise<void> {
         lastUsedAt: new Date(),
       });
     } else {
-      await db.tags.add({
+      await db.tags.put({
         name: tagName,
         usageCount: 1,
         lastUsedAt: new Date(),

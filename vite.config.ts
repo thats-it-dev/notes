@@ -12,6 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
+        id: '/notes-thatsit/',
         name: 'Notes | That\'s It',
         short_name: 'Notes',
         description: 'A simple, fast notes app that works offline',
@@ -21,6 +22,8 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        categories: ['productivity', 'utilities'],
+        prefer_related_applications: false,
         icons: [
           {
             src: 'pwa-192x192.png',

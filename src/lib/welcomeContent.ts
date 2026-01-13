@@ -56,7 +56,7 @@ export const welcomeBlocks: any[] = [
     props: {},
     content: [
       { type: "text", text: "Press ", styles: {} },
-      { type: "text", text: "Cmd+K", styles: { bold: true } },
+      { type: "text", text: "Cmd+K or ⌘", styles: { bold: true } },
       { type: "text", text: " to open the command palette", styles: {} }
     ],
     children: []

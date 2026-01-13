@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { Button, Input } from '@thatsit/ui';
+import { Button } from '@thatsit/ui';
 import { db } from '../lib/db';
 import { createPortal } from 'react-dom';
 import './SettingsPanel.css';
@@ -8,19 +8,19 @@ import { X } from 'lucide-react';
 
 export function SettingsPanel() {
   const { settingsPanelOpen, setSettingsPanelOpen } = useAppStore();
-  const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('syncUrl') || '');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('syncUrl') || '');
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleSaveSyncUrl = () => {
-    localStorage.setItem('syncUrl', syncUrl);
-  };
+  // const handleSaveSyncUrl = () => {
+  //   localStorage.setItem('syncUrl', syncUrl);
+  // };
 
-  const handleLogin = async () => {
-    // TODO: Implement actual login when backend is ready
-    console.log('Login with:', email, syncUrl);
-  };
+  // const handleLogin = async () => {
+  //   // TODO: Implement actual login when backend is ready
+  //   console.log('Login with:', email, syncUrl);
+  // };
 
   const handleDeleteAllData = async () => {
     await db.notes.clear();

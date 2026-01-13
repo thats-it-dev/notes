@@ -4,6 +4,7 @@ import { Button, Input } from '@thatsit/ui';
 import { db } from '../lib/db';
 import { createPortal } from 'react-dom';
 import './SettingsPanel.css';
+import { X } from 'lucide-react';
 
 export function SettingsPanel() {
   const { settingsPanelOpen, setSettingsPanelOpen } = useAppStore();
@@ -42,7 +43,7 @@ export function SettingsPanel() {
             className="settings-close"
             onClick={() => setSettingsPanelOpen(false)}
           >
-            Close
+            <X size={20} />
           </button>
         </div>
 
@@ -56,7 +57,7 @@ export function SettingsPanel() {
                 type="url"
                 value={syncUrl}
                 onChange={(e) => setSyncUrl(e.target.value)}
-                placeholder="https://sync.example.com"
+                placeholder="https://sync.thatsit.app"
               />
               <Button onClick={handleSaveSyncUrl}>Save URL</Button>
             </div>

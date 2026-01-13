@@ -40,11 +40,6 @@
   border-radius: 0.25rem;
   color: var(--text);
   cursor: pointer;
-  transition: background 0.15s;
-}
-
-.settings-close:hover {
-  background: var(--primary-hover, rgba(59, 130, 246, 0.1));
 }
 
 .settings-content {

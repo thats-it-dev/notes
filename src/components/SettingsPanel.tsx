@@ -39,17 +39,18 @@ export function SettingsPanel() {
       <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
         <div className="settings-header">
           <h2 className="settings-title">Settings</h2>
-          <button
+          <Button
+            variant="ghost"
             className="settings-close"
             onClick={() => setSettingsPanelOpen(false)}
           >
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         <div className="settings-content">
           {/* Sync Section */}
-          <section className="settings-section">
+          {/* <section className="settings-section">
             <h3 className="settings-section-title">Sync</h3>
             <div className="settings-field">
               <label className="settings-label">Sync URL</label>
@@ -83,7 +84,7 @@ export function SettingsPanel() {
             </div>
 
             <Button onClick={handleLogin}>Login</Button>
-          </section>
+          </section> */}
 
           {/* Danger Zone */}
           <section className="settings-section settings-danger-zone">

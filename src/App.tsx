@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAppStore } from './store/appStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
+import { welcomeBlocks } from './lib/welcomeContent';
 import { NoteEditor } from './components/NoteEditor';
 import { SettingsPanel } from './components/SettingsPanel';
 import { CommandPalette } from './components/CommandPalette';
@@ -21,7 +22,7 @@ function App() {
       if (recentNote) {
         setCurrentNote(recentNote.id);
       } else {
-        const welcomeNote = await createNote(undefined);
+        const welcomeNote = await createNote(welcomeBlocks);
         setCurrentNote(welcomeNote.id);
       }
     }

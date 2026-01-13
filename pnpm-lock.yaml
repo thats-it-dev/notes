@@ -21,8 +21,8 @@ importers:
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.1(@types/node@24.10.7)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))
       '@thatsit/ui':
-        specifier: ^0.0.5
-        version: 0.0.5(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(tailwindcss@4.1.18)
+        specifier: ^0.1.0
+        version: 0.1.0(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(tailwindcss@4.1.18)
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -35,6 +35,12 @@ importers:
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
+      lucide:
+        specifier: ^0.562.0
+        version: 0.562.0
+      lucide-react:
+        specifier: ^0.562.0
+        version: 0.562.0(react@19.2.3)
       react:
         specifier: ^19.2.3
         version: 19.2.3
@@ -1557,8 +1563,8 @@ packages:
   '@tanstack/store@0.7.7':
     resolution: {integrity: sha512-xa6pTan1bcaqYDS9BDpSiS63qa6EoDkPN9RsRaxHuDdVDNntzq3xNwR5YKTU/V3SkSyC9T4YVOPh2zRQN0nhIQ==}
 
-  '@thatsit/ui@0.0.5':
-    resolution: {integrity: sha512-1zZxhAcrjAqZMZAsU3/qTIirxzncCEb4oU7Wt9xrencF7d5M4WBDCFAmwGoiYNR/tTE1WjO3cRq7dneNRgA8bw==}
+  '@thatsit/ui@0.1.0':
+    resolution: {integrity: sha512-mPHOGmxglYZa+VRSmmJ6LRU/B9nHgsIV+awAfy0VZ1noWrO6tGwSat8c9j0AQSw3NJQSIrgJFFfLIuQUbOHUEw==}
     peerDependencies:
       tailwindcss: ^4.1.18
 
@@ -2780,6 +2786,14 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-react@0.562.0:
+    resolution: {integrity: sha512-82hOAu7y0dbVuFfmO4bYF1XEwYk/mEbM5E+b1jgci/udUBEE/R7LF5Ip0CCEmXe8AybRM8L+04eP+LGZeDvkiw==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  lucide@0.562.0:
+    resolution: {integrity: sha512-k1Fb8ZMnRQovWRlea7Jr0b9UKA29IM7/cu79+mJrhVohvA2YC/Ti3Sk+G+h/SIu3IlrKT4RAbWMHUBBQd1O6XA==}
 
   magic-string@0.25.9:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
@@ -5446,7 +5460,7 @@ snapshots:
 
   '@tanstack/store@0.7.7': {}
 
-  '@thatsit/ui@0.0.5(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(tailwindcss@4.1.18)':
+  '@thatsit/ui@0.1.0(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(tailwindcss@4.1.18)':
     dependencies:
       '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-slot': 1.2.4(@types/react@19.2.8)(react@19.2.3)
@@ -6854,6 +6868,12 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-react@0.562.0(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+
+  lucide@0.562.0: {}
 
   magic-string@0.25.9:
     dependencies:

@@ -1,11 +1,16 @@
 import { BlockNoteSchema, defaultBlockSpecs } from '@blocknote/core';
 
-// Use default schema for now
-// We'll add custom tag inline content later
+// Remove unsupported block types
+const {
+  image: _image,
+  video: _video,
+  audio: _audio,
+  file: _file,
+  ...supportedBlockSpecs
+} = defaultBlockSpecs;
+
 export const schema = BlockNoteSchema.create({
-  blockSpecs: {
-    ...defaultBlockSpecs,
-  },
+  blockSpecs: supportedBlockSpecs,
 });
 
 export type CustomSchema = typeof schema;

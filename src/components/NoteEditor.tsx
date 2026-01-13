@@ -3,7 +3,7 @@ import { db } from '../lib/db';
 import { updateNoteContent } from '../lib/noteOperations';
 import type { Note } from '../lib/types';
 import { useRef, useCallback, useEffect } from 'react';
-import { useCreateBlockNote } from '@blocknote/react';
+import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
@@ -28,7 +28,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 
 function NoteEditorContent({ note }: { note: Note }) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const isUpdatingRef = useRef(false);
+  const lastSavedContentRef = useRef<string>(JSON.stringify(note.content));
 
   const editor = useCreateBlockNote({
     schema,
@@ -41,22 +41,43 @@ function NoteEditorContent({ note }: { note: Note }) {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    isUpdatingRef.current = true;
     timeoutRef.current = setTimeout(() => {
+      const contentJson = JSON.stringify(blocks);
+      lastSavedContentRef.current = contentJson;
       updateNoteContent(note.id, blocks);
-      setTimeout(() => {
-        isUpdatingRef.current = false;
-      }, 100);
     }, 300);
   }, [note.id]);
 
   // Sync editor with database changes (e.g., from task panel toggles)
+  // Only sync if content differs from what we last saved
   useEffect(() => {
-    if (isUpdatingRef.current) return; // Skip if update came from this editor
+    const dbContentJson = JSON.stringify(note.content);
+    if (dbContentJson === lastSavedContentRef.current) {
+      return; // Content matches what we saved, no need to sync
+    }
     if (note.content && note.content.length > 0) {
+      lastSavedContentRef.current = dbContentJson;
       editor.replaceBlocks(editor.document, note.content);
     }
   }, [note.content, editor]);
+
+  // Filter slash menu to only show basic text options
+  const getSlashMenuItems = useCallback(() => {
+    const allowedItems = [
+      'Heading 1',
+      'Heading 2',
+      'Heading 3',
+      'Bullet List',
+      'Numbered List',
+      'Check List',
+      'Paragraph',
+      'Quote',
+      'Code Block',
+    ];
+    return getDefaultReactSlashMenuItems(editor).filter(item =>
+      allowedItems.includes(item.title)
+    );
+  }, [editor]);
 
   return (
     <BlockNoteView
@@ -66,6 +87,12 @@ function NoteEditorContent({ note }: { note: Note }) {
         const blocks = editor.document;
         debouncedUpdate(blocks);
       }}
-    />
+      slashMenu={false}
+    >
+      <SuggestionMenuController
+        triggerCharacter="/"
+        getItems={async () => getSlashMenuItems()}
+      />
+    </BlockNoteView>
   );
 }

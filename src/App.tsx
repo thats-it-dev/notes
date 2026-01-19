@@ -14,7 +14,7 @@ function App() {
   const { currentNoteId, setCurrentNote } = useAppStore();
   const { enable } = useSync();
   const initRef = useRef(false);
-  const [magicLinkStatus, setMagicLinkStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
+  const [magicLinkStatus, setMagicLinkStatus] = useState<'idle' | 'verifying' | 'success' | 'error' | 'pending'>('idle');
   const [magicLinkError, setMagicLinkError] = useState<string | null>(null);
 
   // Auto-detect system theme preference
@@ -49,8 +49,12 @@ function App() {
           setTimeout(() => setMagicLinkStatus('idle'), 3000);
         })
         .catch((err) => {
-          setMagicLinkStatus('error');
-          setMagicLinkError(err.message);
+          if (err.message === 'pending_approval') {
+            setMagicLinkStatus('pending');
+          } else {
+            setMagicLinkStatus('error');
+            setMagicLinkError(err.message);
+          }
           // Clear the token from URL
           window.history.replaceState({}, '', window.location.pathname);
         });
@@ -105,6 +109,17 @@ function App() {
       {magicLinkStatus === 'error' && (
         <div className="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg">
           {magicLinkError || 'Sign in failed'}
+          <button
+            className="ml-2 underline"
+            onClick={() => setMagicLinkStatus('idle')}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+      {magicLinkStatus === 'pending' && (
+        <div className="fixed bottom-4 right-4 bg-amber-600 text-white px-4 py-2 rounded-lg shadow-lg">
+          Account created! Awaiting admin approval.
           <button
             className="ml-2 underline"
             onClick={() => setMagicLinkStatus('idle')}

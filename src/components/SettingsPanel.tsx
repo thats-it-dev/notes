@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { Button, Input } from '@thatsit/ui';
-import { db } from '../lib/db';
 import { createPortal } from 'react-dom';
 import './SettingsPanel.css';
-import { X, Cloud, CloudOff, Loader2, AlertCircle, ArrowLeft, Mail } from 'lucide-react';
+import { X, ArrowLeft, Mail, Loader2, Clock } from 'lucide-react';
 import { useSync } from '../sync';
 import { authStart, authSignup, authSendOtp, authVerifyOtp } from '../sync/api';
 
-type AuthStep = 'email' | 'signup' | 'signin' | 'magic-link-sent' | 'otp-sent';
+type AuthStep = 'email' | 'signup' | 'signin' | 'magic-link-sent' | 'otp-sent' | 'pending-approval';
 
 export function SettingsPanel() {
   const { settingsPanelOpen, setSettingsPanelOpen } = useAppStore();
-  const { status, isEnabled, enable, disable, syncNow } = useSync();
+  const { isEnabled, enable } = useSync();
 
   const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('syncUrl') || 'https://sync.thatsit.app');
   const [email, setEmail] = useState('');
@@ -21,7 +20,6 @@ export function SettingsPanel() {
   const [authStep, setAuthStep] = useState<AuthStep>('email');
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const resetAuthState = () => {
     setAuthStep('email');
@@ -78,7 +76,12 @@ export function SettingsPanel() {
       enable(syncUrl, result.access_token, result.refresh_token);
       resetAuthState();
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Invalid code');
+      const message = error instanceof Error ? error.message : 'Invalid code';
+      if (message === 'pending_approval') {
+        setAuthStep('pending-approval');
+      } else {
+        setAuthError(message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -98,27 +101,14 @@ export function SettingsPanel() {
     }
   };
 
-  const handleLogout = () => {
-    disable();
-  };
-
-  const handleDeleteAllData = async () => {
-    await db.notes.clear();
-    await db.tasks.clear();
-    await db.tags.clear();
-    await db.syncMeta.clear();
-    disable();
-    setShowDeleteDialog(false);
-    window.location.reload();
-  };
-
-  if (!settingsPanelOpen) return null;
+  // Close panel if already logged in
+  if (!settingsPanelOpen || isEnabled) return null;
 
   return createPortal(
     <div className="settings-overlay" onClick={() => setSettingsPanelOpen(false)}>
       <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
         <div className="settings-header">
-          <h2 className="settings-title">Settings</h2>
+          <h2 className="settings-title">Log in</h2>
           <Button
             variant="ghost"
             className="settings-close"
@@ -129,45 +119,10 @@ export function SettingsPanel() {
         </div>
 
         <div className="settings-content">
-          {/* Sync Section */}
           <section className="settings-section">
-            <h3 className="settings-section-title">Sync</h3>
-
-            {isEnabled ? (
-              <>
-                <div className="sync-status">
-                  {status === 'syncing' && (
-                    <>
-                      <Loader2 size={16} className="sync-icon spinning" />
-                      <span>Syncing...</span>
-                    </>
-                  )}
-                  {status === 'idle' && (
-                    <>
-                      <Cloud size={16} className="sync-icon" />
-                      <span>Connected</span>
-                    </>
-                  )}
-                  {status === 'offline' && (
-                    <>
-                      <CloudOff size={16} className="sync-icon" />
-                      <span>Offline</span>
-                    </>
-                  )}
-                  {status === 'error' && (
-                    <>
-                      <AlertCircle size={16} className="sync-icon error" />
-                      <span>Sync error</span>
-                    </>
-                  )}
-                </div>
-                <div className="settings-actions">
-                  <Button onClick={() => syncNow()}>Sync Now</Button>
-                  <Button variant="ghost" onClick={handleLogout}>Logout</Button>
-                </div>
-              </>
-            ) : (
-              <>
+            <p className="text-[var(--text-muted)] mb-4">
+              Sign in to sync your notes across devices.
+            </p>
                 {/* Back button for non-email steps */}
                 {authStep !== 'email' && (
                   <button
@@ -301,42 +256,21 @@ export function SettingsPanel() {
                     </button>
                   </>
                 )}
-              </>
-            )}
-          </section>
 
-          {/* Danger Zone */}
-          <section className="settings-section settings-danger-zone">
-            <h3 className="settings-section-title">Danger Zone</h3>
-            <p className="settings-danger-description">
-              This will permanently delete all your notes, tasks, and settings.
-            </p>
-            <Button onClick={() => setShowDeleteDialog(true)}>
-              Delete All Data
-            </Button>
+                {/* Pending approval state */}
+                {authStep === 'pending-approval' && (
+                  <div className="settings-message">
+                    <Clock size={24} />
+                    <h4>Awaiting approval</h4>
+                    <p>Your account is pending admin approval.</p>
+                    <p className="settings-message-hint">You'll be able to sign in once approved.</p>
+                    <Button variant="ghost" onClick={resetAuthState} className="mt-4">
+                      Back to login
+                    </Button>
+                  </div>
+                )}
           </section>
         </div>
-
-        {/* Delete Confirmation Dialog */}
-        {showDeleteDialog && createPortal(
-          <div className="dialog-overlay" onClick={() => setShowDeleteDialog(false)}>
-            <div className="dialog" onClick={(e) => e.stopPropagation()}>
-              <h3 className="dialog-title">Are you sure?</h3>
-              <p className="dialog-message">
-                This will permanently delete all your notes, tasks, and settings. This action cannot be undone.
-              </p>
-              <div className="dialog-actions">
-                <Button onClick={() => setShowDeleteDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleDeleteAllData}>
-                  Delete All Data
-                </Button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
       </div>
     </div>,
     document.body

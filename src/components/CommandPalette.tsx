@@ -8,6 +8,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { Note } from '../lib/types';
 import { Ellipsis, Trash } from 'lucide-react';
+import { useSync } from '../sync';
 
 const SWIPE_THRESHOLD = 50;
 const DELETE_WIDTH = 80;
@@ -149,11 +150,13 @@ export function CommandPalette() {
     setCommandPaletteOpen,
     setCurrentNote,
     currentNoteId,
-    toggleSettingsPanel
+    setSettingsPanelOpen
   } = useAppStore();
 
+  const { isEnabled, disable } = useSync();
   const [search, setSearch] = useState('');
   const [swipedNoteId, setSwipedNoteId] = useState<string | null>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const notes = useLiveQuery(async () => {
     const allNotes = await db.notes.orderBy('lastOpenedAt').reverse().toArray();
@@ -256,71 +259,126 @@ export function CommandPalette() {
     closePalette();
   };
 
-  if (!commandPaletteOpen) return null;
+  const handleLogout = (deleteLocalData: boolean) => {
+    if (deleteLocalData) {
+      db.notes.clear();
+      db.syncMeta.clear();
+    }
+    disable();
+    setShowLogoutDialog(false);
+    closePalette();
+    if (deleteLocalData) {
+      window.location.reload();
+    }
+  };
+
+  if (!commandPaletteOpen && !showLogoutDialog) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 bg-black/50 flex items-start md:items-center md:pt-0 justify-center z-[100]"
-      onClick={closePalette}
-    >
-      <Command
-        label="Command Menu"
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        loop
-        shouldFilter={!searchTag}
-      >
-        <Command.Input
-          placeholder="Search notes, #tags, or commands..."
-          autoFocus
-          value={search}
-          onValueChange={setSearch}
-        />
-        <Command.List>
-          <Command.Empty>
-            {searchTag
-              ? `No notes found with tag #${searchTag}`
-              : 'No results found'}
-          </Command.Empty>
+    <>
+      {commandPaletteOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-start md:items-center md:pt-0 justify-center z-[100]"
+          onClick={closePalette}
+        >
+          <Command
+            label="Command Menu"
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            loop
+            shouldFilter={!searchTag}
+          >
+            <Command.Input
+              placeholder="Search notes, #tags, or commands..."
+              autoFocus
+              value={search}
+              onValueChange={setSearch}
+            />
+            <Command.List>
+              <Command.Empty>
+                {searchTag
+                  ? `No notes found with tag #${searchTag}`
+                  : 'No results found'}
+              </Command.Empty>
 
-          {!searchTag && (
-            <Command.Group heading="Commands">
-              <Command.Item onSelect={handleNewNote}>
-                Create Note
-              </Command.Item>
-              {currentNote && (
-                <>
-                  <Command.Item onSelect={handleExportMarkdown}>
-                    Export as Markdown
+              {!searchTag && (
+                <Command.Group heading="Commands">
+                  <Command.Item onSelect={handleNewNote}>
+                    Create Note
                   </Command.Item>
-                </>
+                  {currentNote && (
+                    <>
+                      <Command.Item onSelect={handleExportMarkdown}>
+                        Export as Markdown
+                      </Command.Item>
+                    </>
+                  )}
+                  {isEnabled ? (
+                    <Command.Item
+                      onSelect={() => {
+                        setShowLogoutDialog(true);
+                      }}
+                    >
+                      Log out
+                    </Command.Item>
+                  ) : (
+                    <Command.Item
+                      onSelect={() => {
+                        setSettingsPanelOpen(true);
+                        closePalette();
+                      }}
+                    >
+                      Log in
+                    </Command.Item>
+                  )}
+                </Command.Group>
               )}
-              <Command.Item
-                onSelect={() => {
-                  toggleSettingsPanel();
-                  closePalette();
-                }}
-              >
-                Settings
-              </Command.Item>
-            </Command.Group>
-          )}
 
-          <Command.Group heading={searchTag ? `Notes with #${searchTag}` : "Recent Notes"}>
-            {displayNotes.map((note: Note) => (
-              <SwipeableNoteItem
-                key={note.id}
-                note={note}
-                searchTag={searchTag}
-                onSelect={handleSelectNote}
-                onDelete={handleSwipeDelete}
-                isOpen={swipedNoteId === note.id}
-                onSwipeOpen={setSwipedNoteId}
-              />
-            ))}
-          </Command.Group>
-        </Command.List>
-      </Command>
-    </div>,
+              <Command.Group heading={searchTag ? `Notes with #${searchTag}` : "Recent Notes"}>
+                {displayNotes.map((note: Note) => (
+                  <SwipeableNoteItem
+                    key={note.id}
+                    note={note}
+                    searchTag={searchTag}
+                    onSelect={handleSelectNote}
+                    onDelete={handleSwipeDelete}
+                    isOpen={swipedNoteId === note.id}
+                    onSwipeOpen={setSwipedNoteId}
+                  />
+                ))}
+              </Command.Group>
+            </Command.List>
+          </Command>
+        </div>
+      )}
+
+      {showLogoutDialog && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[110]"
+          onClick={() => setShowLogoutDialog(false)}
+        >
+          <div
+            className="bg-[var(--bg)] border border-[var(--border-color)] rounded-lg p-6 max-w-sm mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold mb-4">Log out</h3>
+            <p className="text-[var(--text-muted)] mb-6">
+              Do you want to delete your local notes? They will still be available on other devices if synced.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => handleLogout(false)}>
+                Keep local notes
+              </Button>
+              <Button variant="danger" onClick={() => handleLogout(true)}>
+                Delete local notes
+              </Button>
+              <Button variant="ghost" onClick={() => setShowLogoutDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>,
     document.body
   );
 }

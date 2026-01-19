@@ -156,6 +156,7 @@ export class SyncEngine {
           title: note.title || null,
           content: note.content || null,  // Sync BlockNote JSON content
           tags: note.tags,
+          pinned: note.pinned || false,
           updatedAt: note._localUpdatedAt.toISOString(),
         },
       };
@@ -231,6 +232,7 @@ export class SyncEngine {
           title?: string;
           content?: unknown[];  // BlockNote JSON blocks
           tags?: string[];
+          pinned?: boolean;
           createdAt?: string;
           updatedAt: string;
         };
@@ -241,6 +243,7 @@ export class SyncEngine {
             title: noteData.title || existing.title,
             content: noteData.content || existing.content,
             tags: noteData.tags || existing.tags,
+            pinned: noteData.pinned ?? existing.pinned,
             updatedAt: new Date(noteData.updatedAt),
             _syncStatus: 'synced',
             _localUpdatedAt: new Date(noteData.updatedAt),
@@ -254,6 +257,7 @@ export class SyncEngine {
             content: noteData.content || [],
             markdownCache: '',  // Will be regenerated when note is edited
             tags: noteData.tags || [],
+            pinned: noteData.pinned || false,
             createdAt: noteData.createdAt ? new Date(noteData.createdAt) : now,
             updatedAt: new Date(noteData.updatedAt),
             lastOpenedAt: now,

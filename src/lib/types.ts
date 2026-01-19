@@ -1,12 +1,24 @@
+export type SyncStatus = 'synced' | 'pending' | 'conflict';
+
 export interface Note {
   id: string;
   title: string;
   content: any; // BlockNote JSON structure (use any for now)
   markdownCache: string; // Generated markdown for search
   tags: string[];
+  pinned?: boolean;
   createdAt: Date;
   updatedAt: Date;
   lastOpenedAt: Date;
+  // Sync tracking fields
+  deletedAt?: Date;
+  _syncStatus: SyncStatus;
+  _localUpdatedAt: Date;
+}
+
+export interface SyncMeta {
+  key: string;
+  value: string;
 }
 
 export interface Task {

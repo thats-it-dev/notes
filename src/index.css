@@ -24,7 +24,3 @@ button {
   font-family: inherit;
   cursor: pointer;
 }
-
-.bn-block-content[data-content-type="checkListItem"] > div > input[type="checkbox"] {
-  margin-top: 4px;
-}

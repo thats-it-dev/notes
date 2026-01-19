@@ -10,15 +10,18 @@ describe('Database', () => {
   });
 
   it('should create a note', async () => {
+    const now = new Date();
     const note = {
       id: uuidv4(),
       title: 'Test Note',
       content: [],
       markdownCache: '# Test\nContent here',
       tags: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastOpenedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
+      lastOpenedAt: now,
+      _syncStatus: 'pending' as const,
+      _localUpdatedAt: now,
     };
 
     await db.notes.add(note);

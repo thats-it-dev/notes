@@ -1,26 +1,52 @@
 import type { ReactNode } from 'react';
 import { useAppStore } from '../store/appStore';
-import {CommandIcon} from 'lucide-react';
-import { Button } from '@thatsit/ui';
+import { Cloud, CloudOff, Loader2, AlertCircle } from 'lucide-react';
+import { useSync } from '../sync';
+import { CommandButton } from './CommandButton';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
-export function Layout({ children }: LayoutProps) {
-  const { setCommandPaletteOpen } = useAppStore();
+function SyncIndicator() {
+  const { status, isEnabled, syncNow } = useSync();
+  const { setSettingsPanelOpen } = useAppStore();
+
+  if (!isEnabled) return null;
+
+  const handleClick = () => {
+    if (status === 'error') {
+      setSettingsPanelOpen(true);
+    } else {
+      syncNow().catch(console.error);
+    }
+  };
 
   return (
-      <main className="p-4 min-h-screen flex flex-row justify-center">
-        {children}
-        <Button
-          variant='ghost'
-          onClick={() => setCommandPaletteOpen(true)}
-          className="lg:hidden md:visible fixed bottom-4 right-4 w-12 h-12 transition-colors items-center justify-center text-xl font-semibold z-50"
-          aria-label="Open command palette"
-        >
-          <CommandIcon size={28} />
-        </Button>
-      </main>
+    <button
+      onClick={handleClick}
+      className="fixed top-4 right-4 p-2 rounded-lg bg-[var(--bg)] border border-[var(--border)] hover:bg-[var(--bg-muted)] transition-colors z-50"
+      title={
+        status === 'syncing' ? 'Syncing...' :
+        status === 'idle' ? 'Synced - Click to sync now' :
+        status === 'offline' ? 'Offline' :
+        'Sync error - Click to view settings'
+      }
+    >
+      {status === 'syncing' && <Loader2 size={16} className="animate-spin text-[var(--text-muted)]" />}
+      {status === 'idle' && <Cloud size={16} className="text-[var(--text-muted)]" />}
+      {status === 'offline' && <CloudOff size={16} className="text-[var(--text-muted)]" />}
+      {status === 'error' && <AlertCircle size={16} className="text-[var(--accent)]" />}
+    </button>
+  );
+}
+
+export function Layout({ children }: LayoutProps) {
+  return (
+    <main className="p-4 min-h-screen flex flex-row justify-center">
+      {children}
+      <SyncIndicator />
+      <CommandButton />
+    </main>
   );
 }

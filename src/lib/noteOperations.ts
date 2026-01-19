@@ -4,15 +4,30 @@ import type { Note, Task } from './types';
 import { extractTasks, blocksToMarkdown, extractTags } from './blockNoteConverters';
 import type { Block } from '@blocknote/core';
 
-export async function createNote(initialBlocks?: Block[]): Promise<Note> {
+// Fixed UUID for welcome note - same across all devices
+const WELCOME_NOTE_ID = '00000000-0000-0000-0000-000000000001';
+
+export async function createNote(initialBlocks?: Block[], options?: { isWelcomeNote?: boolean }): Promise<Note> {
   const now = new Date();
   const blocks = initialBlocks || [];
   const markdownCache = blocksToMarkdown(blocks);
   const title = extractTitle(markdownCache);
   const tags = extractTags(markdownCache);
 
+  // Use fixed ID for welcome note, random for others
+  const noteId = options?.isWelcomeNote ? WELCOME_NOTE_ID : uuidv4();
+
+  // For welcome note, check if it already exists (from sync)
+  if (options?.isWelcomeNote) {
+    const existing = await db.notes.get(noteId);
+    if (existing) {
+      // Welcome note already exists, just return it
+      return existing;
+    }
+  }
+
   const note: Note = {
-    id: uuidv4(),
+    id: noteId,
     title,
     content: blocks,
     markdownCache,
@@ -20,6 +35,9 @@ export async function createNote(initialBlocks?: Block[]): Promise<Note> {
     createdAt: now,
     updatedAt: now,
     lastOpenedAt: now,
+    // Sync tracking - welcome note doesn't need to sync, others do
+    _syncStatus: options?.isWelcomeNote ? 'synced' : 'pending',
+    _localUpdatedAt: now,
   };
 
   await db.notes.add(note);
@@ -67,13 +85,15 @@ export async function updateNoteContent(
 
   const now = new Date();
 
-  // Update note
+  // Update note and mark as pending sync
   await db.notes.update(noteId, {
     title,
     content: blocks,
     markdownCache,
     tags: newTags,
     updatedAt: now,
+    _syncStatus: 'pending',
+    _localUpdatedAt: now,
   });
 
   // Update tag counts
@@ -165,4 +185,45 @@ async function decrementTagCounts(tags: string[]): Promise<void> {
       }
     }
   }
+}
+
+// Soft delete a note (marks as deleted for sync, then removes from local view)
+export async function deleteNote(noteId: string): Promise<void> {
+  const note = await db.notes.get(noteId);
+  if (!note) return;
+
+  const now = new Date();
+
+  // Soft delete by setting deletedAt
+  await db.notes.update(noteId, {
+    deletedAt: now,
+    updatedAt: now,
+    _syncStatus: 'pending',
+    _localUpdatedAt: now,
+  });
+
+  // Clean up related tasks
+  const tasks = await db.tasks.where({ noteId }).toArray();
+  for (const task of tasks) {
+    await db.tasks.delete(task.id);
+    await decrementTagCounts(task.tags);
+  }
+
+  // Decrement tag counts
+  await decrementTagCounts(note.tags);
+}
+
+// Get all notes that need to be synced
+export async function getPendingNotes(): Promise<Note[]> {
+  return db.notes.where('_syncStatus').equals('pending').toArray();
+}
+
+// Mark notes as synced after successful push
+export async function markNotesSynced(noteIds: string[]): Promise<void> {
+  await db.notes.where('id').anyOf(noteIds).modify({ _syncStatus: 'synced' });
+}
+
+// Mark a note as having a conflict
+export async function markNoteConflict(noteId: string): Promise<void> {
+  await db.notes.update(noteId, { _syncStatus: 'conflict' });
 }

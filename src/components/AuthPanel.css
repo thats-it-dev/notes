@@ -1,4 +1,4 @@
-.settings-overlay {
+.auth-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -8,7 +8,7 @@
   z-index: 100;
 }
 
-.settings-panel {
+.auth-panel {
   background: var(--bg);
   border-radius: 0.5rem;
   width: 90%;
@@ -18,7 +18,7 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-.settings-header {
+.auth-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -26,14 +26,14 @@
   border-bottom: 1px solid var(--border);
 }
 
-.settings-title {
+.auth-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text);
   margin: 0;
 }
 
-.settings-close {
+.auth-close {
   padding: 0.5rem 1rem;
   background: transparent;
   border: 1px solid var(--border);
@@ -42,137 +42,38 @@
   cursor: pointer;
 }
 
-.settings-content {
+.auth-content {
   padding: 1.5rem;
 }
 
-.settings-section {
+.auth-section {
   margin-bottom: 2rem;
 }
 
-.settings-section:last-child {
+.auth-section:last-child {
   margin-bottom: 0;
 }
 
-.settings-section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0 0 1rem 0;
-}
-
-.settings-field {
+.auth-field {
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.settings-label {
+.auth-label {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text);
 }
 
-.settings-danger-zone {
-  padding: 1rem;
-  border: 1px solid var(--accent);
-  border-radius: 0.5rem;
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.settings-danger-description {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  margin: 0 0 1rem 0;
-}
-
-/* Dialog styles */
-.dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-
-.dialog {
-  background: var(--bg);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  width: 90%;
-  max-width: 400px;
-}
-
-.dialog-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0 0 0.5rem 0;
-}
-
-.dialog-message {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  margin: 0 0 1.5rem 0;
-  line-height: 1.5;
-}
-
-.dialog-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-/* Sync styles */
-.sync-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background: var(--bg-muted);
-  border-radius: 0.375rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  color: var(--text);
-}
-
-.sync-icon {
-  flex-shrink: 0;
-}
-
-.sync-icon.spinning {
-  animation: spin 1s linear infinite;
-}
-
-.sync-icon.error {
-  color: var(--accent);
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.settings-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.settings-error {
+.auth-error {
   color: var(--accent);
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }
 
-/* Auth flow styles */
-.settings-back-button {
+.auth-back-button {
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -186,16 +87,16 @@
   transition: color 0.15s;
 }
 
-.settings-back-button:hover {
+.auth-back-button:hover {
   color: var(--text);
 }
 
-.settings-back-button:disabled {
+.auth-back-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.settings-info {
+.auth-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -207,7 +108,7 @@
   color: var(--text);
 }
 
-.settings-message {
+.auth-message {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -216,28 +117,28 @@
   color: var(--text);
 }
 
-.settings-message h4 {
+.auth-message h4 {
   margin: 1rem 0 0.5rem;
   font-size: 1.125rem;
   font-weight: 600;
 }
 
-.settings-message p {
+.auth-message p {
   margin: 0;
   font-size: 0.875rem;
   color: var(--text-muted);
 }
 
-.settings-message strong {
+.auth-message strong {
   color: var(--text);
 }
 
-.settings-message-hint {
+.auth-message-hint {
   margin-top: 0.5rem !important;
   font-size: 0.8rem !important;
 }
 
-.settings-link-button {
+.auth-link-button {
   display: block;
   width: 100%;
   margin-top: 0.75rem;
@@ -251,15 +152,24 @@
   transition: color 0.15s;
 }
 
-.settings-link-button:hover {
+.auth-link-button:hover {
   color: var(--text);
 }
 
-.settings-link-button:disabled {
+.auth-link-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 .spinning {
   animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

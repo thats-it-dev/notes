@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { Button, Input } from '@thatsit/ui';
 import { createPortal } from 'react-dom';
-import './SettingsPanel.css';
+import './AuthPanel.css';
 import { X, ArrowLeft, Mail, Loader2, Clock } from 'lucide-react';
 import { useSync } from '../sync';
 import { authStart, authSignup, authSendOtp, authVerifyOtp } from '../sync/api';
 
 type AuthStep = 'email' | 'signup' | 'signin' | 'magic-link-sent' | 'otp-sent' | 'pending-approval';
 
-export function SettingsPanel() {
-  const { settingsPanelOpen, setSettingsPanelOpen } = useAppStore();
+export function AuthPanel() {
+  const { authPanelOpen, setAuthPanelOpen } = useAppStore();
   const { isEnabled, enable } = useSync();
 
   const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('syncUrl') || 'https://sync.thatsit.app');
@@ -102,31 +102,31 @@ export function SettingsPanel() {
   };
 
   // Close panel if already logged in
-  if (!settingsPanelOpen || isEnabled) return null;
+  if (!authPanelOpen || isEnabled) return null;
 
   return createPortal(
-    <div className="settings-overlay" onClick={() => setSettingsPanelOpen(false)}>
-      <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="settings-header">
-          <h2 className="settings-title">Log in</h2>
+    <div className="auth-overlay" onClick={() => setAuthPanelOpen(false)}>
+      <div className="auth-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="auth-header">
+          <h2 className="auth-title">Log in</h2>
           <Button
             variant="ghost"
-            className="settings-close"
-            onClick={() => setSettingsPanelOpen(false)}
+            className="auth-close"
+            onClick={() => setAuthPanelOpen(false)}
           >
             <X size={20} />
           </Button>
         </div>
 
-        <div className="settings-content">
-          <section className="settings-section">
+        <div className="auth-content">
+          <section className="auth-section">
             <p className="text-[var(--text-muted)] mb-4">
               Sign in to sync your notes across devices.
             </p>
                 {/* Back button for non-email steps */}
                 {authStep !== 'email' && (
                   <button
-                    className="settings-back-button"
+                    className="auth-back-button"
                     onClick={resetAuthState}
                     disabled={isLoading}
                   >
@@ -138,8 +138,8 @@ export function SettingsPanel() {
                 {/* Step 1: Email entry */}
                 {authStep === 'email' && (
                   <>
-                    <div className="settings-field">
-                      <label className="settings-label">Sync URL</label>
+                    <div className="auth-field">
+                      <label className="auth-label">Sync URL</label>
                       <Input
                         type="url"
                         value={syncUrl}
@@ -148,8 +148,8 @@ export function SettingsPanel() {
                       />
                     </div>
 
-                    <div className="settings-field">
-                      <label className="settings-label">Email</label>
+                    <div className="auth-field">
+                      <label className="auth-label">Email</label>
                       <Input
                         type="email"
                         value={email}
@@ -160,7 +160,7 @@ export function SettingsPanel() {
                     </div>
 
                     {authError && (
-                      <div className="settings-error">{authError}</div>
+                      <div className="auth-error">{authError}</div>
                     )}
 
                     <Button onClick={handleContinue} disabled={isLoading || !email}>
@@ -172,13 +172,13 @@ export function SettingsPanel() {
                 {/* Step 2a: Signup - collect username */}
                 {authStep === 'signup' && (
                   <>
-                    <div className="settings-info">
+                    <div className="auth-info">
                       <Mail size={16} />
                       <span>{email}</span>
                     </div>
 
-                    <div className="settings-field">
-                      <label className="settings-label">Choose a username</label>
+                    <div className="auth-field">
+                      <label className="auth-label">Choose a username</label>
                       <Input
                         type="text"
                         value={username}
@@ -190,7 +190,7 @@ export function SettingsPanel() {
                     </div>
 
                     {authError && (
-                      <div className="settings-error">{authError}</div>
+                      <div className="auth-error">{authError}</div>
                     )}
 
                     <Button onClick={handleSignup} disabled={isLoading || !username}>
@@ -201,17 +201,17 @@ export function SettingsPanel() {
 
                 {/* Step 2b: Magic link sent */}
                 {authStep === 'magic-link-sent' && (
-                  <div className="settings-message">
+                  <div className="auth-message">
                     <Mail size={24} />
                     <h4>Check your email</h4>
                     <p>We sent a magic link to <strong>{email}</strong></p>
-                    <p className="settings-message-hint">Click the link in the email to complete signup.</p>
+                    <p className="auth-message-hint">Click the link in the email to complete signup.</p>
                   </div>
                 )}
 
                 {/* Step 2c: Signin - sending OTP */}
                 {authStep === 'signin' && (
-                  <div className="settings-message">
+                  <div className="auth-message">
                     <Loader2 size={24} className="spinning" />
                     <p>Sending code to {email}...</p>
                   </div>
@@ -220,13 +220,13 @@ export function SettingsPanel() {
                 {/* Step 3: OTP verification */}
                 {authStep === 'otp-sent' && (
                   <>
-                    <div className="settings-info">
+                    <div className="auth-info">
                       <Mail size={16} />
                       <span>{email}</span>
                     </div>
 
-                    <div className="settings-field">
-                      <label className="settings-label">Enter the 6-digit code</label>
+                    <div className="auth-field">
+                      <label className="auth-label">Enter the 6-digit code</label>
                       <Input
                         type="text"
                         value={otpCode}
@@ -240,7 +240,7 @@ export function SettingsPanel() {
                     </div>
 
                     {authError && (
-                      <div className="settings-error">{authError}</div>
+                      <div className="auth-error">{authError}</div>
                     )}
 
                     <Button onClick={handleVerifyOtp} disabled={isLoading || otpCode.length !== 6}>
@@ -248,7 +248,7 @@ export function SettingsPanel() {
                     </Button>
 
                     <button
-                      className="settings-link-button"
+                      className="auth-link-button"
                       onClick={handleResendOtp}
                       disabled={isLoading}
                     >
@@ -259,11 +259,11 @@ export function SettingsPanel() {
 
                 {/* Pending approval state */}
                 {authStep === 'pending-approval' && (
-                  <div className="settings-message">
+                  <div className="auth-message">
                     <Clock size={24} />
                     <h4>Awaiting approval</h4>
                     <p>Your account is pending admin approval.</p>
-                    <p className="settings-message-hint">You'll be able to sign in once approved.</p>
+                    <p className="auth-message-hint">You'll be able to sign in once approved.</p>
                     <Button variant="ghost" onClick={resetAuthState} className="mt-4">
                       Back to login
                     </Button>

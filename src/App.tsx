@@ -3,7 +3,7 @@ import { useAppStore } from './store/appStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
 import { welcomeBlocks } from './lib/welcomeContent';
 import { NoteEditor } from './components/NoteEditor';
-import { SettingsPanel } from './components/SettingsPanel';
+import { AuthPanel } from './components/AuthPanel';
 import { CommandPalette } from './components/CommandPalette';
 import { Layout } from './components/Layout';
 import { useSync } from './sync';
@@ -93,7 +93,7 @@ function App() {
       <Layout>
         <NoteEditor key={currentNoteId} noteId={currentNoteId} />
       </Layout>
-      <SettingsPanel />
+      <AuthPanel />
       <CommandPalette />
       {/* Magic link status toast */}
       {magicLinkStatus === 'verifying' && (

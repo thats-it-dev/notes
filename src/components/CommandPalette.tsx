@@ -418,7 +418,7 @@ export function CommandPalette() {
         open={showLogoutDialog}
         onOpenChange={setShowLogoutDialog}
         title="Log out"
-        description="Do you want to delete your local notes? They will still be available on other devices if synced."
+        description="Do you want delete your notes from this device? This will not effect your notes on other devices."
         size="sm"
         footer={
           <div className="flex flex-row gap-2 w-full justify-end">

@@ -1,4 +1,4 @@
-import { Command, Button } from '@thatsit/ui';
+import { Command, Button, Dialog } from '@thatsit/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/appStore';
@@ -393,6 +393,7 @@ export function CommandPalette() {
                     <Command.Item
                       onSelect={() => {
                         setShowLogoutDialog(true);
+                        closePalette();
                       }}
                     >
                       Log out
@@ -413,33 +414,28 @@ export function CommandPalette() {
         </div>
       )}
 
-      {showLogoutDialog && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[110]"
-          onClick={() => setShowLogoutDialog(false)}
-        >
-          <div
-            className="bg-[var(--bg)] border border-[var(--border-color)] rounded-lg p-6 max-w-sm mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold mb-4">Log out</h3>
-            <p className="text-[var(--text-muted)] mb-6">
-              Do you want to delete your local notes? They will still be available on other devices if synced.
-            </p>
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => handleLogout(false)}>
-                Keep local notes
-              </Button>
-              <Button variant="danger" onClick={() => handleLogout(true)}>
-                Delete local notes
-              </Button>
-              <Button variant="ghost" onClick={() => setShowLogoutDialog(false)}>
-                Cancel
-              </Button>
-            </div>
+      <Dialog
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        title="Log out"
+        description="Do you want to delete your local notes? They will still be available on other devices if synced."
+        size="sm"
+        footer={
+          <div className="flex flex-row gap-2 w-full justify-end">
+            <Button onClick={() => handleLogout(false)}>
+              Keep
+            </Button>
+            <Button variant="danger" onClick={() => handleLogout(true)}>
+              Delete
+            </Button>
+            <Button variant="ghost" onClick={() => setShowLogoutDialog(false)}>
+              Cancel
+            </Button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <div />
+      </Dialog>
     </>,
     document.body
   );

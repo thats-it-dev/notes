@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { CommandIcon, Share, Download, Pin, Trash } from 'lucide-react';
+import { CommandIcon, Download, Pin, Trash, Plus, X, ArrowBigDown, ChevronDown } from 'lucide-react';
 import { Button } from '@thatsit/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
@@ -18,13 +18,17 @@ export function CommandButton() {
 
   const handleMainButtonClick = () => {
     if (showActions) {
-      // Second tap - open command palette
+      // If actions are showing, second tap opens command palette
       setCommandPaletteOpen(true);
       setShowActions(false);
     } else {
-      // First tap - show quick actions
+      // First tap shows quick actions
       setShowActions(true);
     }
+  };
+
+  const handleCollapse = () => {
+    setShowActions(false);
   };
 
   const handleShare = async () => {
@@ -70,6 +74,12 @@ export function CommandButton() {
     setShowActions(false);
   };
 
+  const handleNewNote = async () => {
+    const newNote = await createNote();
+    setCurrentNote(newNote.id);
+    setShowActions(false);
+  };
+
   return (
     <div
       className="fixed bottom-4 right-4 z-50 flex flex-col items-center gap-2"
@@ -82,18 +92,19 @@ export function CommandButton() {
           showActions ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
       >
+        {/* Collapse button at top */}
         <Button
           variant="ghost"
-          onClick={handleShare}
-          className="w-12 h-12 items-center justify-center bg-[var(--bg)] border border-[var(--border-color)] rounded-full shadow-lg"
-          title="Share"
+          onClick={handleCollapse}
+          className="w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
+          title="Collapse"
         >
-          <Share size={20} />
+          <ChevronDown size={20} />
         </Button>
         <Button
           variant="ghost"
           onClick={handleExport}
-          className="w-12 h-12 items-center justify-center bg-[var(--bg)] border border-[var(--border-color)] rounded-full shadow-lg"
+          className="w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
           title="Export"
         >
           <Download size={20} />
@@ -101,7 +112,7 @@ export function CommandButton() {
         <Button
           variant="ghost"
           onClick={handlePin}
-          className="w-12 h-12 items-center justify-center bg-[var(--bg)] border border-[var(--border-color)] rounded-full shadow-lg"
+          className="w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
           title={currentNote?.pinned ? 'Unpin' : 'Pin'}
         >
           <Pin size={20} className={currentNote?.pinned ? 'fill-current' : ''} />
@@ -109,10 +120,18 @@ export function CommandButton() {
         <Button
           variant="danger"
           onClick={handleDelete}
-          className="w-12 h-12 items-center justify-center bg-[var(--bg)] border border-[var(--border-color)] rounded-full shadow-lg"
+          className="w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
           title="Delete"
         >
           <Trash size={20} />
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={handleNewNote}
+          className="w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
+          title="New note"
+        >
+          <Plus size={20} />
         </Button>
       </div>
 
@@ -120,7 +139,7 @@ export function CommandButton() {
       <Button
         variant="ghost"
         onClick={handleMainButtonClick}
-        className="lg:hidden md:visible w-12 h-12 items-center justify-center bg-[var(--bg)] border border-[var(--border-color)] rounded-full shadow-lg"
+        className="lg:hidden md:visible w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
         aria-label="Open command palette"
       >
         <CommandIcon size={28} />

@@ -118,12 +118,12 @@ function SwipeableNoteItem({ note, searchTag, onSelect, onDelete, isOpen, onSwip
           onSelect={handleClick}
           className="flex justify-between items-center w-full"
         >
-          <span className="flex-1">
-            {note.title || 'Untitled'}
+          <span className="flex-1 flex flex-row gap-2 items-baseline">
+            <h5>{note.title || 'Untitled'}</h5>
             {note.tags.length > 0 && (
-              <span className="ml-2 text-xs text-foreground-muted">
+              <p className="text-xs text-foreground-muted">
                 {note.tags.map((t: string) => `#${t}`).join(' ')}
-              </span>
+              </p>
             )}
           </span>
           {isHovered && !isOpen && (
@@ -305,13 +305,6 @@ export function CommandPalette() {
                   <Command.Item onSelect={handleNewNote}>
                     Create Note
                   </Command.Item>
-                  {currentNote && (
-                    <>
-                      <Command.Item onSelect={handleExportMarkdown}>
-                        Export as Markdown
-                      </Command.Item>
-                    </>
-                  )}
                   {isEnabled ? (
                     <Command.Item
                       onSelect={() => {

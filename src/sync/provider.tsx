@@ -141,11 +141,14 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         syncEngine.start(30000);
         setIsEnabled(true);
       },
-      disable: () => {
+      disable: async () => {
         syncEngine.stop();
         localStorage.removeItem(SYNC_URL_KEY);
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem(REFRESH_TOKEN_KEY);
+        // Clear sync token so next login does a full sync
+        const { db } = await import('../lib/db');
+        await db.syncMeta.delete('lastSyncToken');
         setIsEnabled(false);
         setStatus('idle');
       },

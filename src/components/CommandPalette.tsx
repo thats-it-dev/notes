@@ -3,7 +3,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/appStore';
 import { createNote, updateNoteLastOpened, deleteNote } from '../lib/noteOperations';
-import { blocksToMarkdown } from '../lib/blockNoteConverters';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { Note } from '../lib/types';
@@ -130,7 +129,7 @@ function SwipeableNoteItem({ note, searchTag, onSelect, onDelete, isOpen, onSwip
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 onSwipeOpen(note.id);
               }}
@@ -162,11 +161,6 @@ export function CommandPalette() {
     const allNotes = await db.notes.orderBy('lastOpenedAt').reverse().toArray();
     return allNotes.filter(n => !n.deletedAt);
   });
-
-  const currentNote = useLiveQuery(
-    () => currentNoteId ? db.notes.get(currentNoteId) : undefined,
-    [currentNoteId]
-  );
 
   // Detect if searching for a tag (starts with #)
   const searchTag = search.startsWith('#') ? search.slice(1).toLowerCase() : null;
@@ -239,23 +233,6 @@ export function CommandPalette() {
   const handleSelectNote = async (noteId: string) => {
     await updateNoteLastOpened(noteId);
     setCurrentNote(noteId);
-    closePalette();
-  };
-
-  const handleExportMarkdown = () => {
-    if (!currentNote) return;
-
-    const markdown = blocksToMarkdown(currentNote.content || []);
-    const filename = `${currentNote.title || 'untitled'}.md`;
-
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-
     closePalette();
   };
 

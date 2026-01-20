@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { CommandIcon, Download, Pin, Trash, Plus, X, ArrowBigDown, ChevronDown } from 'lucide-react';
+import { CommandIcon, Download, Pin, Trash, Plus, ChevronDown } from 'lucide-react';
 import { Button } from '@thatsit/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
@@ -28,17 +28,6 @@ export function CommandButton() {
   };
 
   const handleCollapse = () => {
-    setShowActions(false);
-  };
-
-  const handleShare = async () => {
-    if (!currentNote) return;
-    const markdown = blocksToMarkdown(currentNote.content || []);
-    if (navigator.share) {
-      await navigator.share({ title: currentNote.title || 'Untitled', text: markdown });
-    } else {
-      await navigator.clipboard.writeText(markdown);
-    }
     setShowActions(false);
   };
 

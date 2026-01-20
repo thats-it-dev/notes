@@ -282,7 +282,24 @@ export function CommandPalette() {
                   <Command.Item onSelect={handleNewNote}>
                     Create Note
                   </Command.Item>
-                  {isEnabled ? (
+                </Command.Group>
+              )}
+
+              <Command.Group heading={searchTag ? `Notes with #${searchTag}` : "Recent Notes"}>
+                {displayNotes.map((note: Note) => (
+                  <SwipeableNoteItem
+                    key={note.id}
+                    note={note}
+                    searchTag={searchTag}
+                    onSelect={handleSelectNote}
+                    onDelete={handleSwipeDelete}
+                    isOpen={swipedNoteId === note.id}
+                    onSwipeOpen={setSwipedNoteId}
+                  />
+                ))}
+              </Command.Group>
+              <Command.Group heading="Settings">
+                {isEnabled ? (
                     <Command.Item
                       onSelect={() => {
                         setShowLogoutDialog(true);
@@ -300,21 +317,6 @@ export function CommandPalette() {
                       Log in
                     </Command.Item>
                   )}
-                </Command.Group>
-              )}
-
-              <Command.Group heading={searchTag ? `Notes with #${searchTag}` : "Recent Notes"}>
-                {displayNotes.map((note: Note) => (
-                  <SwipeableNoteItem
-                    key={note.id}
-                    note={note}
-                    searchTag={searchTag}
-                    onSelect={handleSelectNote}
-                    onDelete={handleSwipeDelete}
-                    isOpen={swipedNoteId === note.id}
-                    onSwipeOpen={setSwipedNoteId}
-                  />
-                ))}
               </Command.Group>
             </Command.List>
           </Command>

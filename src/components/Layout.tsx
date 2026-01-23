@@ -11,9 +11,7 @@ export function Layout({ children }: LayoutProps) {
       className="p-4 min-h-screen flex flex-row justify-center"
       style={{
         paddingTop: 'max(1rem, var(--safe-area-inset-top, 0px))',
-        paddingRight: 'max(1rem, var(--safe-area-inset-right, 0px))',
         paddingBottom: 'max(1rem, var(--safe-area-inset-bottom, 0px))',
-        paddingLeft: 'max(1rem, var(--safe-area-inset-left, 0px))',
       }}
     >
       {children}

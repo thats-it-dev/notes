@@ -1,6 +1,10 @@
 import { db } from '../lib/db';
-import { SyncApiClient, type NoteChange, type ConflictInfo } from './api';
+import { SyncApiClient, type EntityChange, type ConflictInfo } from './api';
 import { v4 as uuidv4 } from 'uuid';
+import { updateTaskInBlocks } from '../lib/blockNoteConverters';
+import type { Block } from '@blocknote/core';
+import { RetryQueue } from './retryQueue';
+import { OperationLog } from './operationLog';
 
 export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error';
 
@@ -12,6 +16,7 @@ export interface SyncResult {
 
 type StatusChangeCallback = (status: SyncStatus) => void;
 type AuthErrorCallback = () => void;
+type SyncCompleteCallback = (result: SyncResult) => void;
 
 /**
  * Generate a unique client ID for this device/browser.
@@ -32,11 +37,16 @@ export class SyncEngine {
   private status: SyncStatus = 'idle';
   private statusCallbacks: Set<StatusChangeCallback> = new Set();
   private authErrorCallbacks: Set<AuthErrorCallback> = new Set();
+  private syncCompleteCallbacks: Set<SyncCompleteCallback> = new Set();
   private syncInterval: ReturnType<typeof setInterval> | null = null;
   private clientId: string;
+  private retryQueue: RetryQueue;
+  private operationLog: OperationLog;
 
   constructor() {
     this.clientId = getClientId();
+    this.retryQueue = new RetryQueue(() => this.syncNow());
+    this.operationLog = new OperationLog();
   }
 
   /**
@@ -94,15 +104,26 @@ export class SyncEngine {
       // 2. Pull remote changes
       const pullResult = await this.pullChanges();
 
+      // Clear retry queue on success
+      this.retryQueue.recordSuccess();
+
       this.setStatus('idle');
 
-      return {
+      const result = {
         pushed: pushResult.pushed,
         pulled: pullResult.pulled,
         conflicts: pushResult.conflicts,
       };
+
+      // Notify listeners that sync completed
+      this.notifySyncComplete(result);
+
+      return result;
     } catch (error) {
       console.error('Sync error:', error);
+
+      // Schedule retry with exponential backoff
+      this.retryQueue.recordFailure();
 
       if (error instanceof Error) {
         if (error.message === 'Not authenticated' || error.message === 'Authentication expired') {
@@ -134,55 +155,123 @@ export class SyncEngine {
       .equals('pending')
       .toArray();
 
-    if (pendingNotes.length === 0) {
+    // Get pending tasks (including soft-deleted ones)
+    const pendingTasks = await db.tasks
+      .where('_syncStatus')
+      .equals('pending')
+      .toArray();
+
+    if (pendingNotes.length === 0 && pendingTasks.length === 0) {
       return { pushed: 0, conflicts: [] };
     }
 
     // Build changes array
-    const changes: NoteChange[] = pendingNotes.map((note) => {
+    const changes: EntityChange[] = [];
+
+    // Add note changes
+    for (const note of pendingNotes) {
       if (note.deletedAt) {
-        return {
+        changes.push({
           type: 'note',
           operation: 'delete',
           id: note.id,
           deletedAt: note.deletedAt.toISOString(),
-        };
+        });
+      } else {
+        changes.push({
+          type: 'note',
+          operation: 'upsert',
+          data: {
+            id: note.id,
+            title: note.title || null,
+            content: note.content || null,  // Sync BlockNote JSON content
+            tags: note.tags,
+            pinned: note.pinned || false,
+            updatedAt: note._localUpdatedAt.toISOString(),
+          },
+        });
       }
-      return {
-        type: 'note',
-        operation: 'upsert',
-        data: {
-          id: note.id,
-          title: note.title || null,
-          content: note.content || null,  // Sync BlockNote JSON content
-          tags: note.tags,
-          pinned: note.pinned || false,
-          updatedAt: note._localUpdatedAt.toISOString(),
-        },
-      };
-    });
+    }
+
+    // Add task changes
+    for (const task of pendingTasks) {
+      if (task.deletedAt) {
+        changes.push({
+          type: 'task',
+          operation: 'delete',
+          id: task.id,
+          deletedAt: task.deletedAt.toISOString(),
+        });
+      } else {
+        changes.push({
+          type: 'task',
+          operation: 'upsert',
+          data: {
+            id: task.id,
+            title: task.title || null,
+            displayTitle: task.displayTitle || task.title || null,
+            tags: task.tags,
+            dueDate: task.dueDate?.toISOString() || null,
+            completed: task.completed,
+            completedAt: null,
+            createdAt: task.createdAt.toISOString(),
+            updatedAt: task._localUpdatedAt.toISOString(),
+            noteId: task.noteId,
+            blockId: task.blockId,  // Needed to update the correct block in notes
+            appType: 'notes',
+          },
+        });
+      }
+    }
+
+    // Generate idempotency key for this batch
+    const idempotencyKey = `${this.clientId}-${Date.now()}-${uuidv4()}`;
+
+    // Track operation for crash recovery
+    const entityIds = changes.map(c => c.operation === 'delete' ? c.id : c.data.id);
+    this.operationLog.start('push', entityIds);
 
     // Push to server
     const result = await this.api.pushChanges({
       changes,
       clientId: this.clientId,
+      idempotencyKey,
     });
 
+    // Separate applied IDs by entity type
+    const appliedNoteIds = result.applied.filter((id) =>
+      pendingNotes.some((n) => n.id === id)
+    );
+    const appliedTaskIds = result.applied.filter((id) =>
+      pendingTasks.some((t) => t.id === id)
+    );
+
     // Mark applied notes as synced
-    if (result.applied.length > 0) {
+    if (appliedNoteIds.length > 0) {
       await db.notes
         .where('id')
-        .anyOf(result.applied)
+        .anyOf(appliedNoteIds)
         .modify({ _syncStatus: 'synced' });
     }
 
-    // Handle conflicts
+    // Mark applied tasks as synced
+    if (appliedTaskIds.length > 0) {
+      await db.tasks
+        .where('id')
+        .anyOf(appliedTaskIds)
+        .modify({ _syncStatus: 'synced' });
+    }
+
+    // Handle conflicts (for notes)
     for (const conflict of result.conflicts) {
       await db.notes.update(conflict.id, { _syncStatus: 'conflict' });
     }
 
     // Update sync token
     await db.syncMeta.put({ key: 'lastSyncToken', value: result.syncToken });
+
+    // Mark operation complete
+    this.operationLog.complete();
 
     return { pushed: result.applied.length, conflicts: result.conflicts };
   }
@@ -203,9 +292,10 @@ export class SyncEngine {
     const result = await this.api.getChanges(since, this.clientId);
 
     const noteChanges = result.changes.notes || [];
+    const taskChanges = result.changes.tasks || [];
     let pulled = 0;
 
-    // Apply remote changes
+    // Apply remote note changes
     for (const change of noteChanges) {
       if (change.operation === 'delete') {
         // Mark note as deleted locally
@@ -269,6 +359,91 @@ export class SyncEngine {
       }
     }
 
+    // Apply remote task changes (from tasks app edits)
+    for (const change of taskChanges) {
+      if (change.operation === 'delete') {
+        // Mark task as deleted locally
+        const existing = await db.tasks.get(change.id);
+        if (existing) {
+          await db.tasks.update(change.id, {
+            deletedAt: change.deletedAt ? new Date(change.deletedAt) : new Date(),
+            _syncStatus: 'synced',
+          });
+          pulled++;
+        }
+      } else if (change.operation === 'upsert' && change.data) {
+        const taskData = change.data as {
+          id: string;
+          title?: string;
+          displayTitle?: string;
+          completed?: boolean;
+          tags?: string[];
+          dueDate?: string | null;
+          noteId?: string;
+          blockId?: string;
+          appType?: 'notes' | 'tasks';
+          updatedAt: string;
+        };
+
+        // Only process tasks that originated from notes app (have a noteId)
+        if (!taskData.noteId) {
+          continue;
+        }
+
+        // Check if we have a local pending change
+        const existing = await db.tasks.get(change.id);
+
+        if (existing && existing._syncStatus === 'pending') {
+          // Skip - local changes take precedence until synced
+          continue;
+        }
+
+        if (existing) {
+          // Task was edited in tasks app - update local task and note content
+          const titleChanged = taskData.title !== undefined && taskData.title !== existing.title;
+          const completedChanged = taskData.completed !== undefined && taskData.completed !== existing.completed;
+
+          // Update the task record
+          await db.tasks.update(change.id, {
+            title: taskData.title ?? existing.title,
+            displayTitle: taskData.displayTitle ?? existing.displayTitle,
+            completed: taskData.completed ?? existing.completed,
+            tags: taskData.tags ?? existing.tags,
+            dueDate: taskData.dueDate ? new Date(taskData.dueDate) : existing.dueDate,
+            updatedAt: new Date(taskData.updatedAt),
+            _syncStatus: 'synced',
+            _localUpdatedAt: new Date(taskData.updatedAt),
+          });
+
+          // Update the corresponding BlockNote block in the note
+          if ((titleChanged || completedChanged) && existing.noteId && existing.blockId) {
+            const note = await db.notes.get(existing.noteId);
+            if (note && note.content) {
+              const updatedContent = updateTaskInBlocks(
+                note.content as Block[],
+                existing.blockId,
+                {
+                  completed: taskData.completed,
+                  title: taskData.title,
+                }
+              );
+
+              // Update note content (mark as synced to avoid re-pushing)
+              await db.notes.update(existing.noteId, {
+                content: updatedContent,
+                updatedAt: new Date(taskData.updatedAt),
+                _syncStatus: 'synced',
+                _localUpdatedAt: new Date(taskData.updatedAt),
+              });
+            }
+          }
+
+          pulled++;
+        }
+        // Note: We don't create new tasks from remote - tasks in notes are created locally
+      }
+    }
+
     // Update sync token
     if (result.syncToken) {
       await db.syncMeta.put({ key: 'lastSyncToken', value: result.syncToken });
@@ -311,6 +486,21 @@ export class SyncEngine {
 
   private notifyAuthError(): void {
     this.authErrorCallbacks.forEach((cb) => cb());
+  }
+
+  /**
+   * Subscribe to sync completion events.
+   * Called after each successful sync with the result.
+   */
+  onSyncComplete(callback: SyncCompleteCallback): () => void {
+    this.syncCompleteCallbacks.add(callback);
+    return () => {
+      this.syncCompleteCallbacks.delete(callback);
+    };
+  }
+
+  private notifySyncComplete(result: SyncResult): void {
+    this.syncCompleteCallbacks.forEach((cb) => cb(result));
   }
 }
 

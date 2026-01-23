@@ -2,11 +2,11 @@ import { Command, Button, Dialog } from '@thatsit/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { useAppStore } from '../store/appStore';
+import { useSyncStore } from '../store/syncStore';
 import { createNote, updateNoteLastOpened, deleteNote } from '../lib/noteOperations';
 import { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { Note } from '../lib/types';
-import { useSync } from '../sync';
 import { SwipeableNoteItem } from './SwipeableNoteItem';
 
 export function CommandPalette() {
@@ -18,7 +18,7 @@ export function CommandPalette() {
     setAuthPanelOpen
   } = useAppStore();
 
-  const { isEnabled, disable } = useSync();
+  const { isEnabled, disable } = useSyncStore();
   const [search, setSearch] = useState('');
   const [swipedNoteId, setSwipedNoteId] = useState<string | null>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);

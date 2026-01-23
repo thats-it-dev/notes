@@ -49,6 +49,56 @@ export class NotesDatabase extends Dexie {
         note._localUpdatedAt = note.updatedAt || new Date();
       });
     });
+
+    // Version 5: Add sync tracking fields to tasks
+    this.version(5).stores({
+      notes: 'id, title, *tags, lastOpenedAt, createdAt, updatedAt, _syncStatus, deletedAt',
+      tasks: 'id, noteId, completed, *tags, createdAt, updatedAt, _syncStatus, deletedAt',
+      tags: 'name, usageCount, lastUsedAt',
+      syncMeta: 'key'
+    }).upgrade(tx => {
+      // Add sync fields to existing tasks
+      return tx.table('tasks').toCollection().modify(task => {
+        task._syncStatus = 'pending';
+        task._localUpdatedAt = task.updatedAt || new Date();
+        task.appType = 'notes';
+      });
+    });
+
+    // Version 6: Add dueDate index to tasks
+    this.version(6).stores({
+      notes: 'id, title, *tags, lastOpenedAt, createdAt, updatedAt, _syncStatus, deletedAt',
+      tasks: 'id, noteId, completed, *tags, dueDate, createdAt, updatedAt, _syncStatus, deletedAt',
+      tags: 'name, usageCount, lastUsedAt',
+      syncMeta: 'key'
+    }).upgrade(tx => {
+      // Add displayTitle to existing tasks (copy from title)
+      return tx.table('tasks').toCollection().modify(task => {
+        if (!task.displayTitle) {
+          task.displayTitle = task.title;
+        }
+        task._syncStatus = 'pending';
+      });
+    });
+
+    // Version 7: Add blockId index for cross-app sync, clear sync token
+    this.version(7).stores({
+      notes: 'id, title, *tags, lastOpenedAt, createdAt, updatedAt, _syncStatus, deletedAt',
+      tasks: 'id, noteId, blockId, completed, *tags, dueDate, createdAt, updatedAt, _syncStatus, deletedAt',
+      tags: 'name, usageCount, lastUsedAt',
+      syncMeta: 'key'
+    }).upgrade(async tx => {
+      // Clear sync token to force full re-sync with blockId field
+      await tx.table('syncMeta').delete('lastSyncToken');
+
+      // Mark all existing tasks as pending so they get pushed to server
+      // This ensures tasks created before cross-app sync get synced
+      await tx.table('tasks').toCollection().modify(task => {
+        task._syncStatus = 'pending';
+      });
+
+      console.log('Cleared sync token and marked tasks pending for schema upgrade to v7');
+    });
   }
 }
 

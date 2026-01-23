@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
+import { useSyncStore } from '../store/syncStore';
 import { Button, Input } from '@thatsit/ui';
 import { createPortal } from 'react-dom';
 import './AuthPanel.css';
 import { X, ArrowLeft, Mail, Loader2, Clock } from 'lucide-react';
-import { useSync } from '../sync';
 import { authStart, authSignup, authSendOtp, authVerifyOtp } from '../sync/api';
 
 type AuthStep = 'email' | 'signup' | 'signin' | 'magic-link-sent' | 'otp-sent' | 'pending-approval';
 
 export function AuthPanel() {
   const { authPanelOpen, setAuthPanelOpen } = useAppStore();
-  const { isEnabled, enable } = useSync();
+  const { isEnabled, enable } = useSyncStore();
 
   const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('syncUrl') || 'https://sync.thatsit.app');
   const [email, setEmail] = useState('');

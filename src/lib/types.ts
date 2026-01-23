@@ -24,12 +24,19 @@ export interface SyncMeta {
 export interface Task {
   id: string;
   title: string;
+  displayTitle: string; // Title without due date syntax
   completed: boolean;
   noteId: string;
   blockId: string; // Changed from lineNumber
   tags: string[];
+  dueDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+  // Sync tracking fields
+  deletedAt?: Date;
+  _syncStatus: SyncStatus;
+  _localUpdatedAt: Date;
+  appType: 'notes' | 'tasks';
 }
 
 export interface Tag {

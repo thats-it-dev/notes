@@ -122,6 +122,7 @@ export interface NoteChangeData {
   title: string | null;
   content: unknown[] | null;  // BlockNote JSON blocks array
   tags: string[];
+  pinned?: boolean;
   updatedAt: string;
 }
 
@@ -140,9 +141,43 @@ export interface NoteDeleteChange {
 
 export type NoteChange = NoteUpsertChange | NoteDeleteChange;
 
+// Task sync types
+export interface TaskChangeData {
+  id: string;
+  title: string | null;
+  displayTitle: string | null;
+  tags: string[];
+  dueDate?: string | null;
+  completed: boolean;
+  completedAt?: string | null;
+  createdAt?: string;
+  updatedAt: string;
+  noteId?: string;
+  blockId?: string;  // BlockNote block ID for tasks from notes
+  appType: 'notes' | 'tasks';
+}
+
+export interface TaskUpsertChange {
+  type: 'task';
+  operation: 'upsert';
+  data: TaskChangeData;
+}
+
+export interface TaskDeleteChange {
+  type: 'task';
+  operation: 'delete';
+  id: string;
+  deletedAt: string;
+}
+
+export type TaskChange = TaskUpsertChange | TaskDeleteChange;
+
+export type EntityChange = NoteChange | TaskChange;
+
 export interface BatchPushRequest {
-  changes: NoteChange[];
+  changes: EntityChange[];
   clientId: string;
+  idempotencyKey?: string;
 }
 
 export interface ConflictInfo {
@@ -165,9 +200,18 @@ export interface NoteChangeResponse {
   deletedAt: string | null;
 }
 
+export interface TaskChangeResponse {
+  id: string;
+  operation: 'upsert' | 'delete';
+  data: Record<string, unknown> | null;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
 export interface ChangesResponse {
   changes: {
     notes?: NoteChangeResponse[];
+    tasks?: TaskChangeResponse[];
   };
   syncToken: string | null;
 }
@@ -215,7 +259,7 @@ export class SyncApiClient {
   }
 
   async getChanges(since?: string, clientId?: string): Promise<ChangesResponse> {
-    const params = new URLSearchParams({ types: 'notes' });
+    const params = new URLSearchParams({ types: 'notes,tasks' });
     if (since) {
       params.set('since', since);
     }

@@ -51,9 +51,11 @@ export async function createNote(initialBlocks?: Block[], options?: { isWelcomeN
     await createTask(
       note.id,
       taskData.title,
+      taskData.displayTitle,
       taskData.completed,
       taskData.blockId,
-      taskData.tags
+      taskData.tags,
+      taskData.dueDate
     );
   }
 
@@ -116,20 +118,27 @@ export async function updateNoteLastOpened(noteId: string): Promise<void> {
 async function createTask(
   noteId: string,
   title: string,
+  displayTitle: string,
   completed: boolean,
   blockId: string,
-  tags: string[]
+  tags: string[],
+  dueDate?: Date
 ): Promise<Task> {
   const now = new Date();
   const task: Task = {
     id: uuidv4(),
     title,
+    displayTitle,
     completed,
     noteId,
     blockId,
     tags,
+    dueDate,
     createdAt: now,
     updatedAt: now,
+    _syncStatus: 'pending',
+    _localUpdatedAt: now,
+    appType: 'notes',
   };
 
   await db.tasks.add(task);
@@ -140,18 +149,55 @@ async function createTask(
 
 async function reconcileTasks(
   noteId: string,
-  newTasks: Array<{ title: string; completed: boolean; blockId: string; tags: string[] }>
+  newTasks: Array<{ title: string; displayTitle: string; completed: boolean; blockId: string; tags: string[]; dueDate?: Date }>
 ): Promise<void> {
-  const existingTasks = await db.tasks.where({ noteId }).toArray();
+  const existingTasks = await db.tasks.where({ noteId }).filter(t => !t.deletedAt).toArray();
+  const now = new Date();
 
-  // Simple strategy: delete all old tasks, create new ones
-  for (const task of existingTasks) {
-    await db.tasks.delete(task.id);
-    await decrementTagCounts(task.tags);
+  // Map existing tasks by blockId for matching
+  const existingByBlockId = new Map(existingTasks.map(t => [t.blockId, t]));
+  const newBlockIds = new Set(newTasks.map(t => t.blockId));
+
+  // Update or create tasks
+  for (const taskData of newTasks) {
+    const existing = existingByBlockId.get(taskData.blockId);
+    if (existing) {
+      // Check if task needs sync fields (migrated from old schema)
+      const needsSyncFields = !existing._syncStatus || !existing._localUpdatedAt || !existing.appType;
+      const contentChanged = existing.title !== taskData.title || existing.completed !== taskData.completed;
+      const dueDateChanged = existing.dueDate?.getTime() !== taskData.dueDate?.getTime();
+
+      // Update existing task if changed OR if it needs sync fields
+      if (contentChanged || dueDateChanged || needsSyncFields) {
+        await db.tasks.update(existing.id, {
+          title: taskData.title,
+          displayTitle: taskData.displayTitle,
+          completed: taskData.completed,
+          tags: taskData.tags,
+          dueDate: taskData.dueDate,
+          updatedAt: now,
+          _syncStatus: 'pending',
+          _localUpdatedAt: now,
+          appType: 'notes',
+        });
+      }
+    } else {
+      // Create new task
+      await createTask(noteId, taskData.title, taskData.displayTitle, taskData.completed, taskData.blockId, taskData.tags, taskData.dueDate);
+    }
   }
 
-  for (const taskData of newTasks) {
-    await createTask(noteId, taskData.title, taskData.completed, taskData.blockId, taskData.tags);
+  // Soft-delete tasks that no longer exist in the note
+  for (const task of existingTasks) {
+    if (!newBlockIds.has(task.blockId)) {
+      await db.tasks.update(task.id, {
+        deletedAt: now,
+        updatedAt: now,
+        _syncStatus: 'pending',
+        _localUpdatedAt: now,
+      });
+      await decrementTagCounts(task.tags);
+    }
   }
 }
 
@@ -202,10 +248,15 @@ export async function deleteNote(noteId: string): Promise<void> {
     _localUpdatedAt: now,
   });
 
-  // Clean up related tasks
+  // Soft-delete related tasks so deletions sync to server
   const tasks = await db.tasks.where({ noteId }).toArray();
   for (const task of tasks) {
-    await db.tasks.delete(task.id);
+    await db.tasks.update(task.id, {
+      deletedAt: now,
+      updatedAt: now,
+      _syncStatus: 'pending',
+      _localUpdatedAt: now,
+    });
     await decrementTagCounts(task.tags);
   }
 

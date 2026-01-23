@@ -1,21 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from './store/appStore';
+import { useSyncStore } from './store/syncStore';
 import { getMostRecentNote, createNote } from './lib/noteOperations';
 import { welcomeBlocks } from './lib/welcomeContent';
 import { NoteEditor } from './components/NoteEditor';
 import { AuthPanel } from './components/AuthPanel';
 import { CommandPalette } from './components/CommandPalette';
 import { Layout } from './components/Layout';
-import { useSync } from './sync';
 import { authVerifyMagicLink } from './sync/api';
 import '@thatsit/ui/index.css';
 
 function App() {
   const { currentNoteId, setCurrentNote } = useAppStore();
-  const { enable } = useSync();
+  const { enable, initialize } = useSyncStore();
   const initRef = useRef(false);
   const [magicLinkStatus, setMagicLinkStatus] = useState<'idle' | 'verifying' | 'success' | 'error' | 'pending'>('idle');
   const [magicLinkError, setMagicLinkError] = useState<string | null>(null);
+
+  // Initialize sync store
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   // Auto-detect system theme preference
   useEffect(() => {

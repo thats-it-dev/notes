@@ -6,10 +6,12 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { blocksToMarkdown } from '../lib/blockNoteConverters';
 import { deleteNote, createNote } from '../lib/noteOperations';
+import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 
 export function CommandButton() {
   const { setCommandPaletteOpen, currentNoteId, setCurrentNote } = useAppStore();
   const [showActions, setShowActions] = useState(false);
+  const keyboardHeight = useKeyboardHeight();
 
   const currentNote = useLiveQuery(
     () => currentNoteId ? db.notes.get(currentNoteId) : undefined,
@@ -71,7 +73,8 @@ export function CommandButton() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 flex flex-col items-center gap-2"
+      className="fixed right-4 z-50 flex flex-col items-center gap-2 transition-[bottom] duration-200"
+      style={{ bottom: `max(1rem, calc(${keyboardHeight}px + 1rem))` }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >

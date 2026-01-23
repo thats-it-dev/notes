@@ -16,9 +16,9 @@ const STORAGE_KEY = 'sync_retry_state';
 export class RetryQueue {
   private state: RetryState | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
-  private onRetry: () => Promise<void>;
+  private onRetry: () => Promise<unknown>;
 
-  constructor(onRetry: () => Promise<void>) {
+  constructor(onRetry: () => Promise<unknown>) {
     this.onRetry = onRetry;
     this.loadState();
   }

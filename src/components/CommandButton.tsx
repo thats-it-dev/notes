@@ -71,10 +71,16 @@ export function CommandButton() {
     setShowActions(false);
   };
 
+  // Calculate position with safe areas
+  const bottomOffset = keyboardHeight > 0
+    ? `calc(${keyboardHeight}px + 1rem)`
+    : 'calc(var(--safe-area-inset-bottom, 0px) + 1rem)';
+  const rightOffset = 'calc(var(--safe-area-inset-right, 0px) + 1rem)';
+
   return (
     <div
-      className="fixed right-4 z-50 flex flex-col items-center gap-2 transition-[bottom] duration-200"
-      style={{ bottom: `max(1rem, calc(${keyboardHeight}px + 1rem))` }}
+      className="fixed z-50 flex flex-col items-center gap-2 transition-[bottom] duration-200"
+      style={{ bottom: bottomOffset, right: rightOffset }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >

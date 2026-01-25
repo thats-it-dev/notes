@@ -29,6 +29,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 function NoteEditorContent({ note }: { note: Note }) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lastSavedContentRef = useRef<string>(JSON.stringify(note.content));
+  const isLocalChangeRef = useRef(false);
 
   const editor = useCreateBlockNote({
     schema,
@@ -41,6 +42,7 @@ function NoteEditorContent({ note }: { note: Note }) {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    isLocalChangeRef.current = true;
     timeoutRef.current = setTimeout(() => {
       const contentJson = JSON.stringify(blocks);
       lastSavedContentRef.current = contentJson;
@@ -49,8 +51,12 @@ function NoteEditorContent({ note }: { note: Note }) {
   }, [note.id]);
 
   // Sync editor with database changes (e.g., from task panel toggles)
-  // Only sync if content differs from what we last saved
+  // Only sync if this is an external change, not one we triggered ourselves
   useEffect(() => {
+    if (isLocalChangeRef.current) {
+      isLocalChangeRef.current = false;
+      return; // Skip sync for our own changes
+    }
     const dbContentJson = JSON.stringify(note.content);
     if (dbContentJson === lastSavedContentRef.current) {
       return; // Content matches what we saved, no need to sync

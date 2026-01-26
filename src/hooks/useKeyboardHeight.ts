@@ -1,55 +1,78 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+interface ViewportPosition {
+  top: number;
+  height: number;
+  isKeyboardOpen: boolean;
+}
 
 /**
- * Hook to detect virtual keyboard height on mobile devices.
- * Uses the Visual Viewport API to calculate the difference between
- * the window height and the visible viewport height.
- * Only reports keyboard height when an input element is focused.
+ * Hook to track the visual viewport position for proper fixed positioning on iOS.
+ * Returns the visual viewport's top offset and height, which can be used to position
+ * elements relative to what the user actually sees (not the layout viewport).
  */
-export function useKeyboardHeight(): number {
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+export function useVisualViewport(): ViewportPosition {
+  const [position, setPosition] = useState<ViewportPosition>({
+    top: 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+    isKeyboardOpen: false,
+  });
+
+  const update = useCallback(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      setPosition({
+        top: 0,
+        height: window.innerHeight,
+        isKeyboardOpen: false,
+      });
+      return;
+    }
+
+    // Check if an input is focused to determine if keyboard is likely open
+    const activeEl = document.activeElement;
+    const isInputFocused = activeEl && (
+      activeEl.tagName === 'INPUT' ||
+      activeEl.tagName === 'TEXTAREA' ||
+      (activeEl as HTMLElement).isContentEditable ||
+      activeEl.closest('[contenteditable="true"]')
+    );
+
+    const heightDiff = window.innerHeight - viewport.height;
+    const isKeyboardOpen = !!isInputFocused && heightDiff > 150;
+
+    setPosition({
+      top: viewport.offsetTop,
+      height: viewport.height,
+      isKeyboardOpen,
+    });
+  }, []);
 
   useEffect(() => {
     const viewport = window.visualViewport;
     if (!viewport) return;
 
-    const updateKeyboardHeight = () => {
-      // Only consider keyboard open if an input/editable element is focused
-      const activeEl = document.activeElement;
-      const isInputFocused = activeEl && (
-        activeEl.tagName === 'INPUT' ||
-        activeEl.tagName === 'TEXTAREA' ||
-        (activeEl as HTMLElement).isContentEditable ||
-        activeEl.closest('[contenteditable="true"]')
-      );
+    viewport.addEventListener('resize', update);
+    viewport.addEventListener('scroll', update);
+    document.addEventListener('focusin', update);
+    document.addEventListener('focusout', update);
 
-      if (!isInputFocused) {
-        setKeyboardHeight(0);
-        return;
-      }
-
-      // The keyboard height is the difference between window height and viewport height
-      // Account for any zoom by using viewport.scale
-      const heightDiff = window.innerHeight - viewport.height * viewport.scale;
-      // Only consider it a keyboard if the difference is significant (> 150px)
-      // This avoids false positives from browser chrome changes (URL bar, etc.)
-      setKeyboardHeight(heightDiff > 150 ? heightDiff : 0);
-    };
-
-    viewport.addEventListener('resize', updateKeyboardHeight);
-    // Listen for focus changes to detect when inputs are focused/blurred
-    document.addEventListener('focusin', updateKeyboardHeight);
-    document.addEventListener('focusout', updateKeyboardHeight);
-
-    // Initial check
-    updateKeyboardHeight();
+    update();
 
     return () => {
-      viewport.removeEventListener('resize', updateKeyboardHeight);
-      document.removeEventListener('focusin', updateKeyboardHeight);
-      document.removeEventListener('focusout', updateKeyboardHeight);
+      viewport.removeEventListener('resize', update);
+      viewport.removeEventListener('scroll', update);
+      document.removeEventListener('focusin', update);
+      document.removeEventListener('focusout', update);
     };
-  }, []);
+  }, [update]);
 
-  return keyboardHeight;
+  return position;
+}
+
+// Legacy export for backwards compatibility
+export function useKeyboardHeight(): number {
+  const { height, isKeyboardOpen } = useVisualViewport();
+  if (!isKeyboardOpen) return 0;
+  return window.innerHeight - height;
 }

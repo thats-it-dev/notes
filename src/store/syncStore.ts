@@ -133,11 +133,25 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
     }
 
     // Sync when user leaves the app (tab hidden or closing)
+    // Use multiple events for better cross-platform support (especially iOS PWAs)
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && get().isEnabled) {
+        // Best effort sync - may not complete on iOS before suspension
+        syncEngine.syncNow().catch(console.error);
+      } else if (document.visibilityState === 'visible' && get().isEnabled) {
+        // Sync when returning to app - catches cases where previous sync was interrupted
+        // This is safe because we're syncing BEFORE the user starts typing
         syncEngine.syncNow().catch(console.error);
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // pagehide is more reliable than visibilitychange on some iOS versions
+    const onPageHide = () => {
+      if (get().isEnabled) {
+        syncEngine.syncNow().catch(console.error);
+      }
+    };
+    window.addEventListener('pagehide', onPageHide);
   },
 }));

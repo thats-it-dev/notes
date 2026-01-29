@@ -6,7 +6,6 @@ import { db } from '../lib/db';
 const SYNC_URL_KEY = 'syncUrl';
 const AUTH_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
-const SYNC_INTERVAL_MS = 30000;
 
 interface SyncStore {
   status: SyncStatus;
@@ -67,7 +66,8 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
     localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     syncEngine.init(syncUrl, () => localStorage.getItem(AUTH_TOKEN_KEY));
-    syncEngine.start(SYNC_INTERVAL_MS);
+    // Only sync once on enable, not on an interval (to avoid disrupting editing)
+    syncEngine.syncNow().catch(console.error);
     set({ isEnabled: true });
   },
 
@@ -120,7 +120,8 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
           localStorage.setItem(AUTH_TOKEN_KEY, tokens.accessToken);
           localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
           syncEngine.init(syncUrl, () => localStorage.getItem(AUTH_TOKEN_KEY));
-          syncEngine.start(SYNC_INTERVAL_MS);
+          // Only sync once on app open, not on an interval (to avoid disrupting editing)
+          syncEngine.syncNow().catch(console.error);
           set({ isEnabled: true });
         } else {
           // Refresh failed - clear credentials
@@ -131,12 +132,12 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
       });
     }
 
-    // Sync on window focus
-    const onFocus = () => {
-      if (get().isEnabled) {
+    // Sync when user leaves the app (tab hidden or closing)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && get().isEnabled) {
         syncEngine.syncNow().catch(console.error);
       }
     };
-    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
   },
 }));

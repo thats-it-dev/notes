@@ -6,7 +6,6 @@ import { db } from '../lib/db';
 const SYNC_URL_KEY = 'syncUrl';
 const AUTH_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
-const SYNC_INTERVAL_MS = 30000;
 
 interface SyncStore {
   status: SyncStatus;
@@ -67,7 +66,8 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
     localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     syncEngine.init(syncUrl, () => localStorage.getItem(AUTH_TOKEN_KEY));
-    syncEngine.start(SYNC_INTERVAL_MS);
+    // Only sync once on enable, not on an interval (to avoid disrupting editing)
+    syncEngine.syncNow().catch(console.error);
     set({ isEnabled: true });
   },
 
@@ -120,7 +120,8 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
           localStorage.setItem(AUTH_TOKEN_KEY, tokens.accessToken);
           localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
           syncEngine.init(syncUrl, () => localStorage.getItem(AUTH_TOKEN_KEY));
-          syncEngine.start(SYNC_INTERVAL_MS);
+          // Only sync once on app open, not on an interval (to avoid disrupting editing)
+          syncEngine.syncNow().catch(console.error);
           set({ isEnabled: true });
         } else {
           // Refresh failed - clear credentials
@@ -131,12 +132,26 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
       });
     }
 
-    // Sync on window focus
-    const onFocus = () => {
+    // Sync when user leaves the app (tab hidden or closing)
+    // Use multiple events for better cross-platform support (especially iOS PWAs)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && get().isEnabled) {
+        // Best effort sync - may not complete on iOS before suspension
+        syncEngine.syncNow().catch(console.error);
+      } else if (document.visibilityState === 'visible' && get().isEnabled) {
+        // Sync when returning to app - catches cases where previous sync was interrupted
+        // This is safe because we're syncing BEFORE the user starts typing
+        syncEngine.syncNow().catch(console.error);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // pagehide is more reliable than visibilitychange on some iOS versions
+    const onPageHide = () => {
       if (get().isEnabled) {
         syncEngine.syncNow().catch(console.error);
       }
     };
-    window.addEventListener('focus', onFocus);
+    window.addEventListener('pagehide', onPageHide);
   },
 }));
